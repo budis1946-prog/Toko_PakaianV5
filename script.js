@@ -1,21 +1,19 @@
-/****************************************************
- * TOKO BAJU - FRONTEND
- ****************************************************/
+// ======================================================
+// TOKO BAJU - JAVASCRIPT FINAL
+// ======================================================
 
-/* ==================================================
-   CONFIGURATION
-================================================== */
+// ======================================================
+// CONFIG
+// ======================================================
 
-// GANTI DENGAN URL WEB APP APPS SCRIPT ANDA
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbzm8k95byPU8YkFPkjt2v5ud2kqw-r8w0Fy65MKBIqxrvQoYWaNCqNviA9TdqqPEXdk/exec";
+  "https://script.google.com/macros/s/AKfycbyBtVfnJ1rTVofpxlfSAwQ6mg86IFc142f-Hc-2WQxsKMrmvbPu6Q_qgGhBpHda7ARq/exec";
 
-// GANTI DENGAN NOMOR WHATSAPP TOKO
 const WHATSAPP_NUMBER = "6283160104255";
 
-/* ==================================================
-   GLOBAL
-================================================== */
+// ======================================================
+// GLOBAL
+// ======================================================
 
 let products = [];
 
@@ -25,290 +23,282 @@ let editId = null;
 
 let currentPhotoUrl = "";
 
-/* ==================================================
-   ELEMENT
-================================================== */
+// ======================================================
+// DOM READY
+// ======================================================
 
-const productContainer = document.getElementById("productContainer");
-
-const loading = document.getElementById("loading");
-
-const searchInput = document.getElementById("searchInput");
-
-const statusFilter = document.getElementById("statusFilter");
-
-const adminDashboard = document.getElementById("adminDashboard");
-
-const buyerInfo = document.getElementById("buyerInfo");
-
-const addProductButton = document.getElementById("addProductButton");
-
-const adminLoginButton = document.getElementById("adminLoginButton");
-
-const logoutButton = document.getElementById("logoutButton");
-
-const modeInfo = document.getElementById("modeInfo");
-
-const adminLoginModal = document.getElementById("adminLoginModal");
-
-const closeAdminLogin = document.getElementById("closeAdminLogin");
-
-const adminLoginForm = document.getElementById("adminLoginForm");
-
-const loginUsername = document.getElementById("loginUsername");
-
-const loginPassword = document.getElementById("loginPassword");
-
-const loginMessage = document.getElementById("loginMessage");
-
-const productModal = document.getElementById("productModal");
-
-const closeProductModal = document.getElementById("closeProductModal");
-
-const productForm = document.getElementById("productForm");
-
-const modalTitle = document.getElementById("modalTitle");
-
-const productId = document.getElementById("productId");
-
-const foto = document.getElementById("foto");
-
-const nama = document.getElementById("nama");
-
-const deskripsi = document.getElementById("deskripsi");
-
-const hargaBeli = document.getElementById("hargaBeli");
-
-const hargaJual = document.getElementById("hargaJual");
-
-const profitPreview = document.getElementById("profitPreview");
-
-const stok = document.getElementById("stok");
-
-const photoPreview = document.getElementById("photoPreview");
-
-const formMessage = document.getElementById("formMessage");
-
-const saveProductButton = document.getElementById("saveProductButton");
-
-const imageViewer = document.getElementById("imageViewer");
-
-const largeImage = document.getElementById("largeImage");
-
-const closeImageViewer = document.getElementById("closeImageViewer");
-
-/* ==================================================
-   INITIALIZE
-================================================== */
-
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
   checkSession();
 
   setupEvents();
 });
 
-/* ==================================================
-   EVENTS
-================================================== */
+// ======================================================
+// SETUP EVENTS
+// ======================================================
 
 function setupEvents() {
-  // Search
-  searchInput.addEventListener("input", renderProducts);
+  const searchInput = document.getElementById("searchInput");
 
-  // Filter
-  statusFilter.addEventListener("change", renderProducts);
+  const statusFilter = document.getElementById("statusFilter");
 
-  // Login Admin
-  adminLoginButton.addEventListener("click", openAdminLogin);
+  if (searchInput) {
+    searchInput.addEventListener("input", renderProducts);
+  }
 
-  closeAdminLogin.addEventListener("click", closeAdminLoginModal);
+  if (statusFilter) {
+    statusFilter.addEventListener("change", renderProducts);
+  }
 
-  adminLoginForm.addEventListener("submit", loginAdmin);
+  const addButton = document.getElementById("addProductButton");
 
-  // Logout
-  logoutButton.addEventListener("click", logoutAdmin);
+  if (addButton) {
+    addButton.addEventListener("click", openAddProduct);
+  }
 
-  // Add product
-  addProductButton.addEventListener("click", openAddProduct);
+  const loginButton = document.getElementById("adminLoginButton");
 
-  closeProductModal.addEventListener("click", closeProduct);
+  if (loginButton) {
+    loginButton.addEventListener("click", openLogin);
+  }
 
-  productForm.addEventListener("submit", saveProduct);
+  const logoutButton = document.getElementById("logoutButton");
 
-  // Harga berubah
-  hargaBeli.addEventListener("input", calculateProfit);
+  if (logoutButton) {
+    logoutButton.addEventListener("click", logoutAdmin);
+  }
 
-  hargaJual.addEventListener("input", calculateProfit);
+  const loginForm = document.getElementById("adminLoginForm");
 
-  // Foto
-  foto.addEventListener("change", previewPhoto);
+  if (loginForm) {
+    loginForm.addEventListener("submit", loginAdmin);
+  }
 
-  // Image viewer
-  closeImageViewer.addEventListener("click", closeViewer);
+  const productForm = document.getElementById("productForm");
 
-  imageViewer.addEventListener("click", function (e) {
-    if (e.target === imageViewer) {
-      closeViewer();
-    }
-  });
+  if (productForm) {
+    productForm.addEventListener("submit", saveProduct);
+  }
+
+  const hargaBeli = document.getElementById("hargaBeli");
+
+  const hargaJual = document.getElementById("hargaJual");
+
+  if (hargaBeli) {
+    hargaBeli.addEventListener("input", calculateProfit);
+  }
+
+  if (hargaJual) {
+    hargaJual.addEventListener("input", calculateProfit);
+  }
+
+  const foto = document.getElementById("foto");
+
+  if (foto) {
+    foto.addEventListener("change", previewPhoto);
+  }
+
+  const closeViewer = document.getElementById("closeImageViewer");
+
+  if (closeViewer) {
+    closeViewer.addEventListener("click", closeImageViewer);
+  }
+
+  const imageViewer = document.getElementById("imageViewer");
+
+  if (imageViewer) {
+    imageViewer.addEventListener("click", function (event) {
+      if (event.target === imageViewer) {
+        closeImageViewer();
+      }
+    });
+  }
 }
 
-/* ==================================================
-   SESSION
-================================================== */
+// ======================================================
+// SESSION
+// ======================================================
 
 function checkSession() {
+  const saved = localStorage.getItem("tokoBajuAdmin");
+
+  if (!saved) {
+    showBuyerMode();
+
+    return;
+  }
+
   try {
-    const saved = localStorage.getItem("tokoBajuAdmin");
+    const session = JSON.parse(saved);
 
-    if (saved) {
-      currentUser = JSON.parse(saved);
+    if (session && session.role === "ADMIN" && session.token) {
+      currentUser = session;
 
-      if (currentUser.token && currentUser.role === "ADMIN") {
-        showAdminMode();
-
-        return;
-      }
+      showAdminMode();
+    } else {
+      showBuyerMode();
     }
   } catch (error) {
     localStorage.removeItem("tokoBajuAdmin");
+
+    showBuyerMode();
   }
-
-  showBuyerMode();
 }
 
-/* ==================================================
-   MODE BUYER
-================================================== */
-
-function showBuyerMode() {
-  currentUser = null;
-
-  adminDashboard.classList.add("hidden");
-
-  buyerInfo.classList.remove("hidden");
-
-  addProductButton.classList.add("hidden");
-
-  adminLoginButton.classList.remove("hidden");
-
-  logoutButton.classList.add("hidden");
-
-  modeInfo.textContent = "🛍️ Buyer";
-
-  loadProducts();
-}
-
-/* ==================================================
-   MODE ADMIN
-================================================== */
-
-function showAdminMode() {
-  adminDashboard.classList.remove("hidden");
-
-  buyerInfo.classList.add("hidden");
-
-  addProductButton.classList.remove("hidden");
-
-  adminLoginButton.classList.add("hidden");
-
-  logoutButton.classList.remove("hidden");
-
-  modeInfo.textContent = "👨‍💼 " + currentUser.username + " • ADMIN";
-
-  loadProducts();
-}
-
-/* ==================================================
-   IS ADMIN
-================================================== */
+// ======================================================
+// ADMIN CHECK
+// ======================================================
 
 function isAdmin() {
   return currentUser && currentUser.role === "ADMIN" && currentUser.token;
 }
 
-/* ==================================================
-   LOGIN MODAL
-================================================== */
+// ======================================================
+// BUYER MODE
+// ======================================================
 
-function openAdminLogin() {
-  loginUsername.value = "";
+function showBuyerMode() {
+  currentUser = null;
 
-  loginPassword.value = "";
+  const dashboard = document.getElementById("adminDashboard");
 
-  loginMessage.textContent = "";
+  const buyerInfo = document.getElementById("buyerInfo");
 
-  adminLoginModal.classList.remove("hidden");
+  const addButton = document.getElementById("addProductButton");
 
-  setTimeout(() => loginUsername.focus(), 100);
+  const loginButton = document.getElementById("adminLoginButton");
+
+  const logoutButton = document.getElementById("logoutButton");
+
+  const modeInfo = document.getElementById("modeInfo");
+
+  if (dashboard) {
+    dashboard.style.display = "none";
+  }
+
+  if (buyerInfo) {
+    buyerInfo.style.display = "block";
+  }
+
+  if (addButton) {
+    addButton.style.display = "none";
+  }
+
+  if (loginButton) {
+    loginButton.style.display = "inline-flex";
+  }
+
+  if (logoutButton) {
+    logoutButton.style.display = "none";
+  }
+
+  if (modeInfo) {
+    modeInfo.textContent = "🛍️ Buyer";
+  }
+
+  /*
+   * Buyer hanya melihat READY.
+   */
+
+  updateBuyerStatusFilter();
+
+  loadProducts();
 }
 
-function closeAdminLoginModal() {
-  adminLoginModal.classList.add("hidden");
+// ======================================================
+// ADMIN MODE
+// ======================================================
+
+function showAdminMode() {
+  const dashboard = document.getElementById("adminDashboard");
+
+  const buyerInfo = document.getElementById("buyerInfo");
+
+  const addButton = document.getElementById("addProductButton");
+
+  const loginButton = document.getElementById("adminLoginButton");
+
+  const logoutButton = document.getElementById("logoutButton");
+
+  const modeInfo = document.getElementById("modeInfo");
+
+  if (dashboard) {
+    dashboard.style.display = "grid";
+  }
+
+  if (buyerInfo) {
+    buyerInfo.style.display = "none";
+  }
+
+  if (addButton) {
+    addButton.style.display = "inline-flex";
+  }
+
+  if (loginButton) {
+    loginButton.style.display = "none";
+  }
+
+  if (logoutButton) {
+    logoutButton.style.display = "inline-flex";
+  }
+
+  if (modeInfo) {
+    modeInfo.textContent = "👨‍💼 Admin: " + (currentUser.username || "");
+  }
+
+  updateBuyerStatusFilter();
+
+  loadProducts();
 }
 
-/* ==================================================
-   LOGIN
-================================================== */
+// ======================================================
+// STATUS FILTER
+// ======================================================
 
-async function loginAdmin(e) {
-  e.preventDefault();
+function updateBuyerStatusFilter() {
+  const filter = document.getElementById("statusFilter");
 
-  loginMessage.textContent = "Memproses login...";
+  if (!filter) {
+    return;
+  }
 
-  try {
-    const response = await postData({
-      action: "login",
+  if (isAdmin()) {
+    filter.innerHTML = `
+      <option value="ALL">
+        Semua Status
+      </option>
 
-      username: loginUsername.value.trim(),
+      <option value="READY">
+        READY
+      </option>
 
-      password: loginPassword.value,
-    });
+      <option value="SOLD">
+        SOLD
+      </option>
+    `;
+  } else {
+    filter.innerHTML = `
+      <option value="ALL">
+        Semua Produk
+      </option>
 
-    if (!response.success) {
-      loginMessage.textContent = response.message;
-
-      return;
-    }
-
-    currentUser = {
-      username: response.username,
-
-      role: response.role,
-
-      token: response.token,
-    };
-
-    localStorage.setItem("tokoBajuAdmin", JSON.stringify(currentUser));
-
-    closeAdminLoginModal();
-
-    showAdminMode();
-  } catch (error) {
-    loginMessage.textContent = "Login gagal: " + error.message;
+      <option value="READY">
+        READY
+      </option>
+    `;
   }
 }
 
-/* ==================================================
-   LOGOUT
-================================================== */
-
-function logoutAdmin() {
-  localStorage.removeItem("tokoBajuAdmin");
-
-  currentUser = null;
-
-  showBuyerMode();
-}
-
-/* ==================================================
-   LOAD PRODUCTS
-================================================== */
+// ======================================================
+// LOAD PRODUCTS
+// ======================================================
 
 async function loadProducts() {
-  loading.classList.remove("hidden");
+  const loading = document.getElementById("loading");
 
-  productContainer.innerHTML = "";
+  if (loading) {
+    loading.style.display = "block";
+  }
 
   try {
     let url = API_URL + "?action=list";
@@ -325,99 +315,96 @@ async function loadProducts() {
       throw new Error(result.message || "Gagal memuat data.");
     }
 
-    products = Array.isArray(result.data) ? result.data : [];
+    products = result.data || [];
 
     renderProducts();
   } catch (error) {
-    productContainer.innerHTML = `
+    console.error(error);
 
-      <div class="empty">
+    const container = document.getElementById("productContainer");
 
-        <h3>⚠️ Gagal memuat data</h3>
+    if (container) {
+      container.innerHTML = `
 
-        <p style="margin-top:10px">
-          ${escapeHtml(error.message)}
-        </p>
+        <div class="empty">
 
-        <button
-          class="btn btn-primary"
-          style="margin-top:15px"
-          onclick="loadProducts()"
-        >
-          🔄 Coba Lagi
-        </button>
+          <h3>
+            ⚠️ Gagal memuat data
+          </h3>
 
-      </div>
+          <p>
+            ${escapeHtml(error.message)}
+          </p>
 
-    `;
+        </div>
+      `;
+    }
   } finally {
-    loading.classList.add("hidden");
+    if (loading) {
+      loading.style.display = "none";
+    }
   }
 }
 
-/* ==================================================
-   RENDER
-================================================== */
+// ======================================================
+// RENDER PRODUCTS
+// ======================================================
 
 function renderProducts() {
+  const searchInput = document.getElementById("searchInput");
 
-  const keyword =
-    searchInput.value
-      .trim()
-      .toLowerCase();
+  const statusFilter = document.getElementById("statusFilter");
 
-  const status =
-    statusFilter.value;
+  const container = document.getElementById("productContainer");
 
-  let filtered =
-    products.filter(product => {
-
-      const matchSearch =
-        String(product.nama || "")
-          .toLowerCase()
-          .includes(keyword) ||
-
-        String(product.deskripsi || "")
-          .toLowerCase()
-          .includes(keyword);
-
-      const matchStatus =
-        status === "ALL" ||
-        String(product.status || "")
-          .toUpperCase() === status;
-
-      return matchSearch && matchStatus;
-    });
-
-
-  /*
-   * BUYER:
-   * Produk SOLD tidak ditampilkan.
-   */
-  if (!isAdmin()) {
-
-    filtered =
-      filtered.filter(product =>
-        String(product.status || "")
-          .toUpperCase() !== "SOLD"
-      );
+  if (!container) {
+    return;
   }
 
+  const keyword = searchInput ? searchInput.value.trim().toLowerCase() : "";
+
+  const status = statusFilter ? statusFilter.value : "ALL";
+
+  let filtered = products.filter(function (product) {
+    const nama = String(product.nama || "").toLowerCase();
+
+    const deskripsi = String(product.deskripsi || "").toLowerCase();
+
+    const productStatus = String(product.status || "").toUpperCase();
+
+    const matchSearch = nama.includes(keyword) || deskripsi.includes(keyword);
+
+    const matchStatus = status === "ALL" || productStatus === status;
+
+    return matchSearch && matchStatus;
+  });
 
   /*
-   * ADMIN:
-   * Dashboard tetap menggunakan
-   * data sesuai filter Admin.
+   * BUYER
+   *
+   * Produk SOLD tidak pernah
+   * ditampilkan.
    */
-  if (isAdmin()) {
 
+  if (!isAdmin()) {
+    filtered = filtered.filter(function (product) {
+      return String(product.status || "").toUpperCase() !== "SOLD";
+    });
+  }
+
+  /*
+   * ADMIN
+   *
+   * Dashboard tetap menghitung
+   * READY + SOLD.
+   */
+
+  if (isAdmin()) {
     updateDashboard(filtered);
   }
 
-
   if (!filtered.length) {
-
-    productContainer.innerHTML = `
+    container.innerHTML = `
 
       <div class="empty">
 
@@ -428,241 +415,230 @@ function renderProducts() {
         <p style="margin-top:8px">
           ${
             isAdmin()
-              ? "Belum ada produk yang sesuai dengan pencarian."
-              : "Saat ini belum ada produk yang tersedia."
+              ? "Belum ada produk yang sesuai."
+              : "Saat ini belum ada produk tersedia."
           }
         </p>
 
       </div>
-
     `;
 
     return;
   }
 
-
-  productContainer.innerHTML =
-    filtered
-      .map(product =>
-        isAdmin()
-          ? adminProductCard(product)
-          : buyerProductCard(product)
-      )
-      .join("");
+  container.innerHTML = filtered
+    .map(function (product) {
+      return isAdmin() ? adminProductCard(product) : buyerProductCard(product);
+    })
+    .join("");
 }
 
-/* ==================================================
-   BUYER CARD
-================================================== */
+// ======================================================
+// BUYER CARD
+// ======================================================
 
 function buyerProductCard(product) {
-  const image = product.foto
-    ? `
-
-      <img
-        src="${escapeAttribute(product.foto)}"
-        class="product-image"
-        alt="${escapeAttribute(product.nama)}"
-        onclick="openImage('${escapeAttribute(product.foto)}')"
-        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-      >
-
-      <div
-        class="no-image"
-        style="display:none"
-      >
-        🖼️ Gambar gagal dimuat
-      </div>
-
-    `
-    : `
-
-      <div class="no-image">
-        📷 Belum ada foto
-      </div>
-
-    `;
-
-  const sold = String(product.status).toUpperCase() === "SOLD";
-
-  const statusClass = sold ? "status-sold" : "status-ready";
+  const foto = product.foto || "";
 
   return `
 
-    <article class="product-card">
+    <div class="product-card">
 
-      ${image}
-
-      <div class="product-body">
-
-        <h3 class="product-name">
-          ${escapeHtml(product.nama)}
-        </h3>
-
-        <p class="product-description">
-          ${escapeHtml(product.deskripsi || "-")}
-        </p>
-
-        <div class="price">
-          ${formatRupiah(product.hargaJual)}
-        </div>
-
-        <div class="stock">
-          📦 Stok: ${Number(product.stok || 0)}
-        </div>
-
-        <span class="status ${statusClass}">
-          ${escapeHtml(product.status)}
-        </span>
-
+      <div
+        class="product-image-wrapper"
+        onclick="openImageViewer('${escapeAttribute(foto)}')"
+      >
 
         ${
-          !sold
+          foto
             ? `
 
-              <button
-                class="btn btn-whatsapp"
-                onclick="beliWhatsApp('${escapeAttribute(product.id)}')"
+              <img
+                src="${escapeAttribute(foto)}"
+                class="product-image"
+                alt="${escapeAttribute(product.nama)}"
+                onerror="this.src=''; this.alt='Gambar gagal dimuat'"
               >
-                💬 Beli via WhatsApp
-              </button>
 
             `
             : `
 
-              <button
-                class="btn"
-                disabled
-                style="width:100%;background:#e5e7eb;color:#6b7280"
-              >
-                Produk Sudah Terjual
-              </button>
+              <div class="no-image">
+                📷 Tidak ada foto
+              </div>
 
             `
         }
 
       </div>
 
-    </article>
+
+      <div class="product-content">
+
+        <h3>
+          ${escapeHtml(product.nama)}
+        </h3>
+
+
+        <p class="description">
+          ${escapeHtml(product.deskripsi)}
+        </p>
+
+
+        <div class="price">
+
+          ${formatRupiah(product.hargaJual)}
+
+        </div>
+
+
+        <div class="product-info">
+
+          <span>
+            Stok:
+            <strong>
+              ${Number(product.stok || 0)}
+            </strong>
+          </span>
+
+          <span class="status ready">
+            READY
+          </span>
+
+        </div>
+
+
+        <button
+          class="btn-whatsapp"
+          onclick="beliWhatsApp('${escapeAttribute(product.id)}')"
+        >
+          💬 Beli via WhatsApp
+        </button>
+
+      </div>
+
+    </div>
 
   `;
 }
 
-/* ==================================================
-   ADMIN CARD
-================================================== */
+// ======================================================
+// ADMIN CARD
+// ======================================================
 
 function adminProductCard(product) {
-  const image = product.foto
-    ? `
+  const status = String(product.status || "").toUpperCase();
 
-      <img
-        src="${escapeAttribute(product.foto)}"
-        class="product-image"
-        alt="${escapeAttribute(product.nama)}"
-        onclick="openImage('${escapeAttribute(product.foto)}')"
-        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-      >
-
-      <div
-        class="no-image"
-        style="display:none"
-      >
-        🖼️ Gambar gagal dimuat
-      </div>
-
-    `
-    : `
-
-      <div class="no-image">
-        📷 Belum ada foto
-      </div>
-
-    `;
-
-  const sold = String(product.status).toUpperCase() === "SOLD";
-
-  const statusClass = sold ? "status-sold" : "status-ready";
+  const statusClass = status === "SOLD" ? "sold" : "ready";
 
   return `
 
-    <article class="product-card">
+    <div class="product-card">
 
-      ${image}
+      <div
+        class="product-image-wrapper"
+        onclick="openImageViewer('${escapeAttribute(product.foto || "")}')"
+      >
 
-      <div class="product-body">
+        ${
+          product.foto
+            ? `
 
-        <h3 class="product-name">
+              <img
+                src="${escapeAttribute(product.foto)}"
+                class="product-image"
+                alt="${escapeAttribute(product.nama)}"
+                onerror="this.src=''; this.alt='Gambar gagal dimuat'"
+              >
+
+            `
+            : `
+
+              <div class="no-image">
+                📷 Tidak ada foto
+              </div>
+
+            `
+        }
+
+      </div>
+
+
+      <div class="product-content">
+
+        <h3>
           ${escapeHtml(product.nama)}
         </h3>
 
-        <p class="product-description">
-          ${escapeHtml(product.deskripsi || "-")}
+
+        <p class="description">
+          ${escapeHtml(product.deskripsi)}
         </p>
 
 
-        <div class="buy-price">
-          Harga Beli:
-          <b>
-            ${formatRupiah(product.hargaBeli)}
-          </b>
+        <div class="admin-price">
+
+          <div>
+            Harga Beli:
+            <strong>
+              ${formatRupiah(product.hargaBeli)}
+            </strong>
+          </div>
+
+          <div>
+            Harga Jual:
+            <strong>
+              ${formatRupiah(product.hargaJual)}
+            </strong>
+          </div>
+
+          <div>
+            Profit:
+            <strong>
+              ${formatRupiah(product.profit)}
+            </strong>
+          </div>
+
         </div>
 
 
-        <div class="price">
-          Harga Jual:
-          ${formatRupiah(product.hargaJual)}
+        <div class="product-info">
+
+          <span>
+            Stok:
+            <strong>
+              ${Number(product.stok || 0)}
+            </strong>
+          </span>
+
+
+          <span class="status ${statusClass}">
+            ${status}
+          </span>
+
         </div>
 
 
-        <div class="profit">
-          Profit:
-          ${formatRupiah(product.profit)}
-        </div>
-
-
-        <div class="stock">
-          📦 Stok:
-          ${Number(product.stok || 0)}
-        </div>
-
-
-        <span class="status ${statusClass}">
-          ${escapeHtml(product.status)}
-        </span>
-
-
-        <div class="card-actions">
-
+        <div class="admin-actions">
 
           ${
-            !sold
+            status !== "SOLD"
               ? `
 
                 <button
-                  class="btn btn-success"
+                  class="btn-sold"
                   onclick="markProductSold('${escapeAttribute(product.id)}')"
                 >
-                  ✅ SOLD
+                  ✓ SOLD
                 </button>
 
               `
-              : `
-
-                <button
-                  class="btn"
-                  disabled
-                  style="background:#e5e7eb;color:#6b7280"
-                >
-                  SOLD
-                </button>
-
-              `
+              : ""
           }
 
 
           <button
-            class="btn btn-warning"
+            class="btn-edit"
             onclick="editProduct('${escapeAttribute(product.id)}')"
           >
             ✏️ Edit
@@ -670,157 +646,142 @@ function adminProductCard(product) {
 
 
           <button
-            class="btn btn-danger"
+            class="btn-delete"
             onclick="deleteProduct('${escapeAttribute(product.id)}')"
           >
             🗑️ Hapus
           </button>
 
-
         </div>
 
       </div>
 
-    </article>
+    </div>
 
   `;
 }
 
-/* ==================================================
-   DASHBOARD
-================================================== */
+// ======================================================
+// DASHBOARD
+// ======================================================
 
 function updateDashboard(list) {
-
   let totalProduk = 0;
+
   let totalReady = 0;
+
   let totalSold = 0;
 
   let totalModal = 0;
+
   let totalPenjualan = 0;
+
   let totalProfit = 0;
 
-  list.forEach(product => {
-
+  list.forEach(function (product) {
     totalProduk++;
 
-    const status =
-      String(product.status || "")
-        .toUpperCase();
+    const status = String(product.status || "").toUpperCase();
 
-    const hargaBeli =
-      Number(product.hargaBeli || 0);
+    const hargaBeli = Number(product.hargaBeli || 0);
 
-    const hargaJual =
-      Number(product.hargaJual || 0);
+    const hargaJual = Number(product.hargaJual || 0);
 
-    const profit =
-      Number(product.profit || 0);
+    const profit = Number(product.profit || 0);
 
-    const stok =
-      Number(product.stok || 0);
+    const stok = Number(product.stok || 0);
 
+    /*
+     * Gunakan STOK AWAL.
+     *
+     * Jadi SOLD dengan stok tersedia
+     * 0 tetap mempunyai modal.
+     */
+
+    let stokAwal = Number(product.stokAwal || product.stokawal || 0);
+
+    /*
+     * Untuk data lama yang belum
+     * mempunyai stokawal:
+     *
+     * kalau stok masih > 0,
+     * gunakan stok.
+     */
+
+    if (!stokAwal && stok > 0) {
+      stokAwal = stok;
+    }
+
+    // ----------------------------------
+    // STATUS
+    // ----------------------------------
 
     if (status === "READY") {
       totalReady++;
     }
 
-
     if (status === "SOLD") {
       totalSold++;
     }
 
-
-    // =================================
+    // ----------------------------------
     // TOTAL MODAL
-    // SOLD TETAP DIHITUNG
-    // =================================
+    //
+    // READY + SOLD
+    //
+    // Harga Beli × Stok Awal
+    // ----------------------------------
 
-    const stokAwal =
-  Number(product.stokawal || product.stokAwal || product.stok || 0);
+    totalModal += hargaBeli * stokAwal;
 
-totalModal += hargaBeli * stokAwal;
-
-
-    // =================================
-    // TOTAL PENJUALAN
-    // HANYA PRODUK SOLD
-    // =================================
+    // ----------------------------------
+    // PENJUALAN
+    // ----------------------------------
 
     if (status === "SOLD") {
-
       totalPenjualan += hargaJual;
 
       totalProfit += profit;
-
     }
-
   });
 
+  setText("totalProduk", totalProduk);
 
-  document.getElementById("totalProduk").textContent =
-    totalProduk;
+  setText("totalReady", totalReady);
 
-  document.getElementById("totalReady").textContent =
-    totalReady;
+  setText("totalSold", totalSold);
 
-  document.getElementById("totalSold").textContent =
-    totalSold;
+  setText("totalModal", formatRupiah(totalModal));
 
-  document.getElementById("totalModal").textContent =
-    formatRupiah(totalModal);
+  setText("totalPenjualan", formatRupiah(totalPenjualan));
 
-  document.getElementById("totalPenjualan").textContent =
-    formatRupiah(totalPenjualan);
-
-  document.getElementById("totalProfit").textContent =
-    formatRupiah(totalProfit);
+  setText("totalProfit", formatRupiah(totalProfit));
 }
 
-/* ==================================================
-   ADD PRODUCT
-================================================== */
+// ======================================================
+// ADD PRODUCT
+// ======================================================
 
 function openAddProduct() {
-  if (!isAdmin()) {
-    alert("Silakan login sebagai Admin.");
-
-    return;
-  }
-
   editId = null;
 
   currentPhotoUrl = "";
 
-  modalTitle.textContent = "Tambah Produk";
+  setText("productModalTitle", "Tambah Produk");
 
-  productForm.reset();
+  resetProductForm();
 
-  productId.value = "";
-
-  stok.value = 1;
-
-  profitPreview.value = "Rp0";
-
-  photoPreview.innerHTML = "";
-
-  formMessage.textContent = "";
-
-  productModal.classList.remove("hidden");
+  showModal("productModal");
 }
 
-/* ==================================================
-   EDIT PRODUCT
-================================================== */
+// ======================================================
+// EDIT PRODUCT
+// ======================================================
 
 function editProduct(id) {
-  if (!isAdmin()) {
-    alert("Akses Admin diperlukan.");
-
-    return;
-  }
-
-  const product = products.find((item) => String(item.id) === String(id));
+  const product = products.find(function (item) {
+    return String(item.id) === String(id);
+  });
 
   if (!product) {
     alert("Produk tidak ditemukan.");
@@ -828,107 +789,213 @@ function editProduct(id) {
     return;
   }
 
-  editId = id;
-
-  modalTitle.textContent = "Edit Produk";
-
-  productId.value = product.id;
-
-  nama.value = product.nama || "";
-
-  deskripsi.value = product.deskripsi || "";
-
-  hargaBeli.value = product.hargaBeli || 0;
-
-  hargaJual.value = product.hargaJual || 0;
-
-  stok.value = product.stok ?? 0;
+  editId = product.id;
 
   currentPhotoUrl = product.foto || "";
 
-  if (product.foto) {
-    photoPreview.innerHTML = `
+  setText("productModalTitle", "Edit Produk");
 
-      <img
-        src="${escapeAttribute(product.foto)}"
-        alt="Preview"
-      >
+  setValue("productId", product.id);
 
-    `;
-  } else {
-    photoPreview.innerHTML = "";
+  setValue("nama", product.nama);
+
+  setValue("deskripsi", product.deskripsi);
+
+  setValue("hargaBeli", product.hargaBeli);
+
+  setValue("hargaJual", product.hargaJual);
+
+  setValue("stok", product.stok);
+
+  const preview = document.getElementById("photoPreview");
+
+  if (preview && product.foto) {
+    preview.src = product.foto;
+
+    preview.style.display = "block";
   }
 
   calculateProfit();
 
-  formMessage.textContent = "";
-
-  productModal.classList.remove("hidden");
+  showModal("productModal");
 }
 
-/* ==================================================
-   CLOSE PRODUCT
-================================================== */
+// ======================================================
+// RESET FORM
+// ======================================================
+
+function resetProductForm() {
+  const form = document.getElementById("productForm");
+
+  if (form) {
+    form.reset();
+  }
+
+  setValue("productId", "");
+
+  setText("profitPreview", "Rp0");
+
+  const preview = document.getElementById("photoPreview");
+
+  if (preview) {
+    preview.src = "";
+
+    preview.style.display = "none";
+  }
+
+  const message = document.getElementById("formMessage");
+
+  if (message) {
+    message.textContent = "";
+  }
+}
+
+// ======================================================
+// CLOSE PRODUCT
+// ======================================================
 
 function closeProduct() {
-  productModal.classList.add("hidden");
+  hideModal("productModal");
 }
 
-/* ==================================================
-   PREVIEW PHOTO
-================================================== */
+// ======================================================
+// LOGIN MODAL
+// ======================================================
 
-function previewPhoto() {
-  const file = foto.files[0];
+function openLogin() {
+  const modal = document.getElementById("adminLoginModal");
+
+  if (modal) {
+    modal.style.display = "flex";
+  }
+}
+
+function closeLogin() {
+  hideModal("adminLoginModal");
+}
+
+// ======================================================
+// LOGIN ADMIN
+// ======================================================
+
+async function loginAdmin(event) {
+  event.preventDefault();
+
+  const username = getValue("loginUsername");
+
+  const password = getValue("loginPassword");
+
+  const message = document.getElementById("loginMessage");
+
+  if (message) {
+    message.textContent = "Memproses login...";
+  }
+
+  try {
+    const result = await postData({
+      action: "login",
+
+      username: username,
+
+      password: password,
+    });
+
+    if (!result.success) {
+      throw new Error(result.message || "Login gagal.");
+    }
+
+    currentUser = {
+      username: result.username,
+
+      role: result.role,
+
+      token: result.token,
+    };
+
+    localStorage.setItem("tokoBajuAdmin", JSON.stringify(currentUser));
+
+    closeLogin();
+
+    showAdminMode();
+  } catch (error) {
+    if (message) {
+      message.textContent = error.message;
+    }
+  }
+}
+
+// ======================================================
+// LOGOUT
+// ======================================================
+
+function logoutAdmin() {
+  localStorage.removeItem("tokoBajuAdmin");
+
+  currentUser = null;
+
+  showBuyerMode();
+}
+
+// ======================================================
+// PREVIEW PHOTO
+// ======================================================
+
+async function previewPhoto(event) {
+  const file = event.target.files[0];
 
   if (!file) {
     return;
   }
 
-  if (!file.type.startsWith("image/")) {
-    alert("File harus berupa gambar.");
+  /*
+   * Maksimal 5 MB
+   */
 
-    foto.value = "";
+  if (file.size > 5 * 1024 * 1024) {
+    alert("Foto terlalu besar. Maksimal 5 MB.");
+
+    event.target.value = "";
 
     return;
   }
 
-  const reader = new FileReader();
+  try {
+    const compressed = await compressImage(file);
 
-  reader.onload = function (e) {
-    photoPreview.innerHTML = `
+    currentPhotoUrl = compressed;
 
-        <img
-          src="${e.target.result}"
-          alt="Preview Foto"
-        >
+    const preview = document.getElementById("photoPreview");
 
-      `;
-  };
+    if (preview) {
+      preview.src = compressed;
 
-  reader.readAsDataURL(file);
+      preview.style.display = "block";
+    }
+  } catch (error) {
+    alert("Gagal memproses foto.");
+  }
 }
 
-/* ==================================================
-   COMPRESS IMAGE
-================================================== */
+// ======================================================
+// COMPRESS IMAGE
+// ======================================================
 
 function compressImage(file) {
-  return new Promise((resolve, reject) => {
+  return new Promise(function (resolve, reject) {
     const reader = new FileReader();
 
     reader.onload = function (event) {
-      const img = new Image();
+      const image = new Image();
 
-      img.onload = function () {
+      image.onload = function () {
         const maxWidth = 1200;
 
-        let width = img.width;
+        let width = image.width;
 
-        let height = img.height;
+        let height = image.height;
 
         if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
+          height = (height * maxWidth) / width;
 
           width = maxWidth;
         }
@@ -939,18 +1006,16 @@ function compressImage(file) {
 
         canvas.height = height;
 
-        const ctx = canvas.getContext("2d");
+        const context = canvas.getContext("2d");
 
-        ctx.drawImage(img, 0, 0, width, height);
+        context.drawImage(image, 0, 0, width, height);
 
-        const result = canvas.toDataURL("image/jpeg", 0.75);
-
-        resolve(result);
+        resolve(canvas.toDataURL("image/jpeg", 0.75));
       };
 
-      img.onerror = reject;
+      image.onerror = reject;
 
-      img.src = event.target.result;
+      image.src = event.target.result;
     };
 
     reader.onerror = reject;
@@ -959,44 +1024,48 @@ function compressImage(file) {
   });
 }
 
-/* ==================================================
-   UPLOAD FOTO
-================================================== */
+// ======================================================
+// UPLOAD PHOTO
+// ======================================================
 
-async function uploadPhoto(file) {
-  const compressed = await compressImage(file);
-
-  // Periksa ukuran hasil kompresi
-  const size = Math.round((compressed.length * 3) / 4);
-
-  // Maksimal sekitar 4 MB
-  if (size > 4 * 1024 * 1024) {
-    throw new Error("Foto masih terlalu besar. Gunakan foto yang lebih kecil.");
+async function uploadPhoto() {
+  if (!currentPhotoUrl) {
+    return "";
   }
 
-  const response = await postData({
+  /*
+   * Jika foto tidak berubah
+   * dan sudah berupa URL Drive,
+   * jangan upload lagi.
+   */
+
+  if (currentPhotoUrl.startsWith("http")) {
+    return currentPhotoUrl;
+  }
+
+  const result = await postData({
     action: "upload",
 
     token: currentUser.token,
 
-    fileName: "produk_" + Date.now() + ".jpg",
+    base64: currentPhotoUrl,
 
-    base64: compressed,
+    fileName: "produk_" + Date.now() + ".jpg",
   });
 
-  if (!response.success) {
-    throw new Error(response.message);
+  if (!result.success) {
+    throw new Error(result.message || "Upload foto gagal.");
   }
 
-  return response.url;
+  return result.url;
 }
 
-/* ==================================================
-   SAVE PRODUCT
-================================================== */
+// ======================================================
+// SAVE PRODUCT
+// ======================================================
 
-async function saveProduct(e) {
-  e.preventDefault();
+async function saveProduct(event) {
+  event.preventDefault();
 
   if (!isAdmin()) {
     alert("Silakan login sebagai Admin.");
@@ -1004,90 +1073,94 @@ async function saveProduct(e) {
     return;
   }
 
-  formMessage.textContent = "Menyimpan data...";
+  const button = document.getElementById("saveProductButton");
 
-  saveProductButton.disabled = true;
+  const message = document.getElementById("formMessage");
 
   try {
-    let photoUrl = currentPhotoUrl;
+    if (button) {
+      button.disabled = true;
 
-    // ==============================================
-    // Upload foto baru
-    // ==============================================
-
-    if (foto.files.length > 0) {
-      formMessage.textContent = "Mengupload foto...";
-
-      photoUrl = await uploadPhoto(foto.files[0]);
+      button.textContent = "Menyimpan...";
     }
 
-    const data = {
-      token: currentUser.token,
+    const foto = await uploadPhoto();
 
+    const data = {
       action: editId ? "update" : "add",
+
+      token: currentUser.token,
 
       id: editId || "",
 
-      foto: photoUrl,
+      foto: foto,
 
-      nama: nama.value.trim(),
+      nama: getValue("nama"),
 
-      deskripsi: deskripsi.value.trim(),
+      deskripsi: getValue("deskripsi"),
 
-      hargaBeli: Number(hargaBeli.value || 0),
+      hargaBeli: Number(getValue("hargaBeli") || 0),
 
-      hargaJual: Number(hargaJual.value || 0),
+      hargaJual: Number(getValue("hargaJual") || 0),
 
-      stok: Number(stok.value || 0),
+      stok: Number(getValue("stok") || 0),
     };
 
-    formMessage.textContent = "Menyimpan produk...";
+    const result = await postData(data);
 
-    const response = await postData(data);
-
-    if (!response.success) {
-      throw new Error(response.message);
+    if (!result.success) {
+      throw new Error(result.message || "Gagal menyimpan.");
     }
-
-    alert(
-      editId ? "Produk berhasil diperbarui." : "Produk berhasil ditambahkan.",
-    );
 
     closeProduct();
 
     await loadProducts();
+
+    alert(
+      editId ? "Produk berhasil diperbarui." : "Produk berhasil ditambahkan.",
+    );
   } catch (error) {
-    formMessage.textContent = "❌ " + error.message;
+    if (message) {
+      message.textContent = error.message;
+    }
+
+    alert(error.message);
   } finally {
-    saveProductButton.disabled = false;
+    if (button) {
+      button.disabled = false;
+
+      button.textContent = "Simpan Produk";
+    }
   }
 }
 
-/* ==================================================
-   MARK SOLD
-================================================== */
+// ======================================================
+// MARK PRODUCT SOLD
+// ======================================================
 
 async function markProductSold(id) {
   if (!isAdmin()) {
-    alert("Akses Admin diperlukan.");
-
     return;
   }
 
-  const product = products.find((item) => String(item.id) === String(id));
+  const product = products.find(function (item) {
+    return String(item.id) === String(id);
+  });
 
   if (!product) {
     return;
   }
 
-  const yakin = confirm(`Tandai "${product.nama}" sebagai SOLD?`);
+  const confirmSold = confirm(
+    'Tandai produk "' + product.nama + '" sebagai SOLD?',
+  );
 
-  if (!yakin) {
+  if (!confirmSold) {
     return;
   }
 
   try {
-    const response = await postData({
+    const result = await postData({
       action: "sold",
 
       token: currentUser.token,
@@ -1095,43 +1168,41 @@ async function markProductSold(id) {
       id: id,
     });
 
-    if (!response.success) {
-      throw new Error(response.message);
+    if (!result.success) {
+      throw new Error(result.message || "Gagal mengubah status.");
     }
 
-    alert("Produk berhasil ditandai SOLD.");
-
     await loadProducts();
+
+    alert("Produk berhasil ditandai SOLD.");
   } catch (error) {
-    alert("Gagal: " + error.message);
+    alert(error.message);
   }
 }
 
-/* ==================================================
-   DELETE
-================================================== */
+// ======================================================
+// DELETE PRODUCT
+// ======================================================
 
 async function deleteProduct(id) {
   if (!isAdmin()) {
-    alert("Akses Admin diperlukan.");
-
     return;
   }
 
-  const product = products.find((item) => String(item.id) === String(id));
+  const product = products.find(function (item) {
+    return String(item.id) === String(id);
+  });
 
-  if (!product) {
-    return;
-  }
+  const confirmDelete = confirm(
+    'Hapus produk "' + (product ? product.nama : "") + '"?',
+  );
 
-  const yakin = confirm(`Hapus produk "${product.nama}"?`);
-
-  if (!yakin) {
+  if (!confirmDelete) {
     return;
   }
 
   try {
-    const response = await postData({
+    const result = await postData({
       action: "delete",
 
       token: currentUser.token,
@@ -1139,34 +1210,28 @@ async function deleteProduct(id) {
       id: id,
     });
 
-    if (!response.success) {
-      throw new Error(response.message);
+    if (!result.success) {
+      throw new Error(result.message || "Gagal menghapus.");
     }
 
-    alert("Produk berhasil dihapus.");
-
     await loadProducts();
+
+    alert("Produk berhasil dihapus.");
   } catch (error) {
-    alert("Gagal menghapus: " + error.message);
+    alert(error.message);
   }
 }
 
-/* ==================================================
-   WHATSAPP
-================================================== */
+// ======================================================
+// WHATSAPP
+// ======================================================
 
 function beliWhatsApp(id) {
-  const product = products.find((item) => String(item.id) === String(id));
+  const product = products.find(function (item) {
+    return String(item.id) === String(id);
+  });
 
   if (!product) {
-    alert("Produk tidak ditemukan.");
-
-    return;
-  }
-
-  if (String(product.status).toUpperCase() === "SOLD") {
-    alert("Produk sudah terjual.");
-
     return;
   }
 
@@ -1176,53 +1241,60 @@ function beliWhatsApp(id) {
     encodeURIComponent(product.nama) +
     "%0A" +
     "Harga: " +
-    encodeURIComponent(formatRupiah(product.hargaJual)) +
-    "%0A" +
-    "ID: " +
-    encodeURIComponent(product.id);
+    encodeURIComponent(formatRupiah(product.hargaJual));
 
   const url = "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + message;
 
   window.open(url, "_blank");
 }
 
-/* ==================================================
-   IMAGE VIEWER
-================================================== */
+// ======================================================
+// IMAGE VIEWER
+// ======================================================
 
-function openImage(url) {
+function openImageViewer(url) {
   if (!url) {
     return;
   }
 
-  largeImage.src = url;
+  const viewer = document.getElementById("imageViewer");
 
-  imageViewer.classList.remove("hidden");
+  const image = document.getElementById("largeImage");
+
+  if (!viewer || !image) {
+    return;
+  }
+
+  image.src = url;
+
+  viewer.style.display = "flex";
 }
 
-function closeViewer() {
-  imageViewer.classList.add("hidden");
+function closeImageViewer() {
+  const viewer = document.getElementById("imageViewer");
 
-  largeImage.src = "";
+  if (viewer) {
+    viewer.style.display = "none";
+  }
 }
 
-/* ==================================================
-   PROFIT
-================================================== */
+// ======================================================
+// CALCULATE PROFIT
+// ======================================================
 
 function calculateProfit() {
-  const beli = Number(hargaBeli.value || 0);
+  const hargaBeli = Number(getValue("hargaBeli") || 0);
 
-  const jual = Number(hargaJual.value || 0);
+  const hargaJual = Number(getValue("hargaJual") || 0);
 
-  const profit = jual - beli;
+  const profit = hargaJual - hargaBeli;
 
-  profitPreview.value = formatRupiah(profit);
+  setText("profitPreview", formatRupiah(profit));
 }
 
-/* ==================================================
-   POST
-================================================== */
+// ======================================================
+// POST DATA
+// ======================================================
 
 async function postData(data) {
   const response = await fetch(API_URL, {
@@ -1238,26 +1310,28 @@ async function postData(data) {
   return await response.json();
 }
 
-/* ==================================================
-   RUPIAH
-================================================== */
+// ======================================================
+// FORMAT RUPIAH
+// ======================================================
 
 function formatRupiah(value) {
   const number = Number(value || 0);
 
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
+
     currency: "IDR",
+
     maximumFractionDigits: 0,
   }).format(number);
 }
 
-/* ==================================================
-   ESCAPE HTML
-================================================== */
+// ======================================================
+// ESCAPE HTML
+// ======================================================
 
 function escapeHtml(value) {
-  return String(value ?? "")
+  return String(value || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -1265,9 +1339,68 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
+// ======================================================
+// ESCAPE ATTRIBUTE
+// ======================================================
+
 function escapeAttribute(value) {
-  return String(value ?? "")
-    .replace(/\\/g, "\\\\")
-    .replace(/'/g, "\\'")
-    .replace(/"/g, "&quot;");
+  return escapeHtml(value);
+}
+
+// ======================================================
+// SET TEXT
+// ======================================================
+
+function setText(id, value) {
+  const element = document.getElementById(id);
+
+  if (element) {
+    element.textContent = value;
+  }
+}
+
+// ======================================================
+// GET VALUE
+// ======================================================
+
+function getValue(id) {
+  const element = document.getElementById(id);
+
+  return element ? element.value : "";
+}
+
+// ======================================================
+// SET VALUE
+// ======================================================
+
+function setValue(id, value) {
+  const element = document.getElementById(id);
+
+  if (element) {
+    element.value = value ?? "";
+  }
+}
+
+// ======================================================
+// SHOW MODAL
+// ======================================================
+
+function showModal(id) {
+  const modal = document.getElementById(id);
+
+  if (modal) {
+    modal.style.display = "flex";
+  }
+}
+
+// ======================================================
+// HIDE MODAL
+// ======================================================
+
+function hideModal(id) {
+  const modal = document.getElementById(id);
+
+  if (modal) {
+    modal.style.display = "none";
+  }
 }

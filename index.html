@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Toko Baju</title>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- =================================================
+     HEADER
+================================================== -->
+
+    <header class="header">
+      <div>
+        <h1>👕 Toko Baju</h1>
+
+        <p>Manajemen Produk & Penjualan</p>
+      </div>
+
+      <div class="header-actions">
+        <span id="modeInfo" class="mode-info"> 🛍️ Buyer </span>
+
+        <button id="adminLoginButton" class="btn btn-dark">
+          🔐 Login Admin
+        </button>
+
+        <button id="logoutButton" class="btn btn-danger hidden">Logout</button>
+      </div>
+    </header>
+
+    <!-- =================================================
+     ADMIN DASHBOARD
+================================================== -->
+
+    <section id="adminDashboard" class="dashboard hidden">
+      <div class="dashboard-card">
+        <span>📦</span>
+
+        <div>
+          <small>Total Produk</small>
+
+          <strong id="totalProduk"> 0 </strong>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <span>🟢</span>
+
+        <div>
+          <small>READY</small>
+
+          <strong id="totalReady"> 0 </strong>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <span>🔴</span>
+
+        <div>
+          <small>SOLD</small>
+
+          <strong id="totalSold"> 0 </strong>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <span>💰</span>
+
+        <div>
+          <small>Total Modal</small>
+
+          <strong id="totalModal"> Rp0 </strong>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <span>💵</span>
+
+        <div>
+          <small>Total Penjualan</small>
+
+          <strong id="totalPenjualan"> Rp0 </strong>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <span>📈</span>
+
+        <div>
+          <small>Total Profit</small>
+
+          <strong id="totalProfit"> Rp0 </strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================
+     INFO BUYER
+================================================== -->
+
+    <section id="buyerInfo" class="buyer-info">
+      <div>
+        <strong>🛍️ Katalog Toko Baju</strong>
+
+        <p>
+          Pilih produk yang Anda inginkan kemudian klik tombol
+          <b>Beli via WhatsApp</b>.
+        </p>
+      </div>
+    </section>
+
+    <!-- =================================================
+     TOOLBAR
+================================================== -->
+
+    <section class="toolbar">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔎 Cari produk..." />
+      </div>
+
+      <select id="statusFilter">
+        <option value="ALL">Semua Status</option>
+
+        <option value="READY">READY</option>
+
+        <option value="SOLD">SOLD</option>
+      </select>
+
+      <button id="addProductButton" class="btn btn-primary hidden">
+        ➕ Tambah Produk
+      </button>
+    </section>
+
+    <!-- =================================================
+     LOADING
+================================================== -->
+
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+
+      <p>Memuat data produk...</p>
+    </div>
+
+    <!-- =================================================
+     PRODUCT CONTAINER
+================================================== -->
+
+    <main id="productContainer" class="product-grid"></main>
+
+    <!-- =================================================
+     MODAL LOGIN ADMIN
+================================================== -->
+
+    <div id="adminLoginModal" class="modal hidden">
+      <div class="modal-content login-modal">
+        <button class="modal-close" id="closeAdminLogin">×</button>
+
+        <h2>🔐 Login Admin</h2>
+
+        <p class="modal-description">
+          Login hanya diperlukan untuk pengelolaan toko.
+        </p>
+
+        <form id="adminLoginForm">
+          <label> Username </label>
+
+          <input
+            type="text"
+            id="loginUsername"
+            autocomplete="username"
+            required
+          />
+
+          <label> Password </label>
+
+          <input
+            type="password"
+            id="loginPassword"
+            autocomplete="current-password"
+            required
+          />
+
+          <button type="submit" class="btn btn-primary full-width">
+            Login
+          </button>
+
+          <p id="loginMessage" class="form-message"></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- =================================================
+     MODAL PRODUK
+================================================== -->
+
+    <div id="productModal" class="modal hidden">
+      <div class="modal-content">
+        <button class="modal-close" id="closeProductModal">×</button>
+
+        <h2 id="modalTitle">Tambah Produk</h2>
+
+        <form id="productForm">
+          <input type="hidden" id="productId" />
+
+          <!-- FOTO -->
+
+          <label> Foto Produk </label>
+
+          <input type="file" id="foto" accept="image/*" />
+
+          <div id="photoPreview" class="photo-preview"></div>
+
+          <!-- NAMA -->
+
+          <label> Nama Produk </label>
+
+          <input
+            type="text"
+            id="nama"
+            placeholder="Contoh: Kaos Oversize"
+            required
+          />
+
+          <!-- DESKRIPSI -->
+
+          <label> Deskripsi </label>
+
+          <textarea
+            id="deskripsi"
+            rows="4"
+            placeholder="Deskripsi produk..."
+          ></textarea>
+
+          <!-- HARGA BELI -->
+
+          <label> Harga Beli </label>
+
+          <input
+            type="number"
+            id="hargaBeli"
+            min="0"
+            placeholder="50000"
+            required
+          />
+
+          <!-- HARGA JUAL -->
+
+          <label> Harga Jual </label>
+
+          <input
+            type="number"
+            id="hargaJual"
+            min="0"
+            placeholder="85000"
+            required
+          />
+
+          <!-- PROFIT -->
+
+          <label> Profit </label>
+
+          <input type="text" id="profitPreview" readonly value="Rp0" />
+
+          <!-- STOK -->
+
+          <label> Stok </label>
+
+          <input type="number" id="stok" min="0" value="1" required />
+
+          <button
+            type="submit"
+            id="saveProductButton"
+            class="btn btn-primary full-width"
+          >
+            💾 Simpan Produk
+          </button>
+
+          <p id="formMessage" class="form-message"></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- =================================================
+     IMAGE VIEWER
+================================================== -->
+
+    <div id="imageViewer" class="image-viewer hidden">
+      <button id="closeImageViewer" class="viewer-close">×</button>
+
+      <img id="largeImage" src="" alt="Foto Produk" />
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

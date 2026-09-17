@@ -691,70 +691,81 @@ function adminProductCard(product) {
 ================================================== */
 
 function updateDashboard(list) {
+
   let totalProduk = 0;
-
   let totalReady = 0;
-
   let totalSold = 0;
 
   let totalModal = 0;
-
   let totalPenjualan = 0;
-
   let totalProfit = 0;
 
-  list.forEach((product) => {
+  list.forEach(product => {
+
     totalProduk++;
 
-    const status = String(product.status).toUpperCase();
+    const status =
+      String(product.status || "")
+        .toUpperCase();
 
-    const hargaBeli = Number(product.hargaBeli || 0);
+    const hargaBeli =
+      Number(product.hargaBeli || 0);
 
-    const hargaJual = Number(product.hargaJual || 0);
+    const hargaJual =
+      Number(product.hargaJual || 0);
 
-    const profit = Number(product.profit || hargaJual - hargaBeli);
+    const profit =
+      Number(product.profit || 0);
 
-    const stok = Number(product.stok || 0);
+    const stok =
+      Number(product.stok || 0);
 
-    // READY
+
     if (status === "READY") {
       totalReady++;
     }
 
-    // SOLD
+
     if (status === "SOLD") {
       totalSold++;
-
-      totalPenjualan += hargaJual;
     }
 
-    /*
-      TOTAL MODAL
 
-      Harga Beli × Stok
-
-      Termasuk barang SOLD
-    */
+    // =================================
+    // TOTAL MODAL
+    // SOLD TETAP DIHITUNG
+    // =================================
 
     totalModal += hargaBeli * stok;
 
-    /*
-      Profit hanya dihitung
-      dari barang SOLD
-    */
+
+    // =================================
+    // TOTAL PENJUALAN
+    // HANYA PRODUK SOLD
+    // =================================
 
     if (status === "SOLD") {
+
+      totalPenjualan += hargaJual;
+
       totalProfit += profit;
+
     }
+
   });
 
-  document.getElementById("totalProduk").textContent = totalProduk;
 
-  document.getElementById("totalReady").textContent = totalReady;
+  document.getElementById("totalProduk").textContent =
+    totalProduk;
 
-  document.getElementById("totalSold").textContent = totalSold;
+  document.getElementById("totalReady").textContent =
+    totalReady;
 
-  document.getElementById("totalModal").textContent = formatRupiah(totalModal);
+  document.getElementById("totalSold").textContent =
+    totalSold;
+
+  document.getElementById("totalModal").textContent =
+    formatRupiah(totalModal);
 
   document.getElementById("totalPenjualan").textContent =
     formatRupiah(totalPenjualan);

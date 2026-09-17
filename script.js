@@ -360,30 +360,63 @@ async function loadProducts() {
 ================================================== */
 
 function renderProducts() {
-  const keyword = searchInput.value.trim().toLowerCase();
 
-  const status = statusFilter.value;
+  const keyword =
+    searchInput.value
+      .trim()
+      .toLowerCase();
 
-  const filtered = products.filter((product) => {
-    const matchSearch =
-      String(product.nama || "")
-        .toLowerCase()
-        .includes(keyword) ||
-      String(product.deskripsi || "")
-        .toLowerCase()
-        .includes(keyword);
+  const status =
+    statusFilter.value;
 
-    const matchStatus =
-      status === "ALL" || String(product.status || "").toUpperCase() === status;
+  let filtered =
+    products.filter(product => {
 
-    return matchSearch && matchStatus;
-  });
+      const matchSearch =
+        String(product.nama || "")
+          .toLowerCase()
+          .includes(keyword) ||
 
+        String(product.deskripsi || "")
+          .toLowerCase()
+          .includes(keyword);
+
+      const matchStatus =
+        status === "ALL" ||
+        String(product.status || "")
+          .toUpperCase() === status;
+
+      return matchSearch && matchStatus;
+    });
+
+
+  /*
+   * BUYER:
+   * Produk SOLD tidak ditampilkan.
+   */
+  if (!isAdmin()) {
+
+    filtered =
+      filtered.filter(product =>
+        String(product.status || "")
+          .toUpperCase() !== "SOLD"
+      );
+  }
+
+
+  /*
+   * ADMIN:
+   * Dashboard tetap menggunakan
+   * data sesuai filter Admin.
+   */
   if (isAdmin()) {
+
     updateDashboard(filtered);
   }
 
+
   if (!filtered.length) {
+
     productContainer.innerHTML = `
 
       <div class="empty">
@@ -393,8 +426,11 @@ function renderProducts() {
         </h3>
 
         <p style="margin-top:8px">
-          Belum ada produk yang sesuai
-          dengan pencarian.
+          ${
+            isAdmin()
+              ? "Belum ada produk yang sesuai dengan pencarian."
+              : "Saat ini belum ada produk yang tersedia."
+          }
         </p>
 
       </div>
@@ -404,11 +440,15 @@ function renderProducts() {
     return;
   }
 
-  productContainer.innerHTML = filtered
-    .map((product) =>
-      isAdmin() ? adminProductCard(product) : buyerProductCard(product),
-    )
-    .join("");
+
+  productContainer.innerHTML =
+    filtered
+      .map(product =>
+        isAdmin()
+          ? adminProductCard(product)
+          : buyerProductCard(product)
+      )
+      .join("");
 }
 
 /* ==================================================

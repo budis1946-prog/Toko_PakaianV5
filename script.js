@@ -8,7 +8,7 @@
 
 // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbwh5g3Q74OgsMQ4EFPuNB_uygQS_99IE6yid-z6RWV_xWslYTc9-MsqnZgMdW7zdAeT/exec";
+  "https://script.google.com/macros/s/AKfycbzUdm3zRt_egXqP5ygm1SWj2Ia2lfcVKP8kvS7FdsGW_4nelHWm7MdvhhaQaMw8vgNk/exec";
 
 // GANTI DENGAN NOMOR WHATSAPP TOKO
 const WHATSAPP_NUMBER = "6283160104255";

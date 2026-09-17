@@ -8,7 +8,7 @@
 
 // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbzUdm3zRt_egXqP5ygm1SWj2Ia2lfcVKP8kvS7FdsGW_4nelHWm7MdvhhaQaMw8vgNk/exec";
+  "https://script.google.com/macros/s/AKfycbzm8k95byPU8YkFPkjt2v5ud2kqw-r8w0Fy65MKBIqxrvQoYWaNCqNviA9TdqqPEXdk/exec";
 
 // GANTI DENGAN NOMOR WHATSAPP TOKO
 const WHATSAPP_NUMBER = "6283160104255";
@@ -736,7 +736,10 @@ function updateDashboard(list) {
     // SOLD TETAP DIHITUNG
     // =================================
 
-    totalModal += hargaBeli * stok;
+    const stokAwal =
+  Number(product.stokawal || product.stokAwal || product.stok || 0);
+
+totalModal += hargaBeli * stokAwal;
 
 
     // =================================

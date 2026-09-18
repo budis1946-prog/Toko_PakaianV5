@@ -29,7 +29,6 @@ let currentPhotoUrl = "";
 
 document.addEventListener("DOMContentLoaded", function () {
   checkSession();
-  setupFilterListeners();
 });
 
 /* ==================================================
@@ -148,44 +147,6 @@ async function loadProducts() {
 }
 
 /* ==================================================
-   FILTER LISTENERS
-================================================== */
-
-function setupFilterListeners() {
-  const adminStatusFilter = document.getElementById("adminStatusFilter");
-
-  if (adminStatusFilter) {
-    adminStatusFilter.addEventListener("change", function () {
-      renderProducts();
-    });
-  }
-
-  const adminSearchInput = document.getElementById("adminSearchInput");
-
-  if (adminSearchInput) {
-    adminSearchInput.addEventListener("input", function () {
-      renderProducts();
-    });
-  }
-
-  const statusFilter = document.getElementById("statusFilter");
-
-  if (statusFilter) {
-    statusFilter.addEventListener("change", function () {
-      renderProducts();
-    });
-  }
-
-  const searchInput = document.getElementById("searchInput");
-
-  if (searchInput) {
-    searchInput.addEventListener("input", function () {
-      renderProducts();
-    });
-  }
-}
-
-/* ==================================================
    RENDER PRODUCTS
 ================================================== */
 
@@ -239,14 +200,13 @@ function renderProducts() {
   }
 
   /* ================================================
-   ADMIN
-================================================ */
+     ADMIN
+  ================================================ */
 
   const searchInput = document.getElementById("adminSearchInput");
 
   const keyword = searchInput ? searchInput.value.trim().toLowerCase() : "";
 
-  // Filter berdasarkan pencarian
   if (keyword) {
     list = list.filter(function (p) {
       return (
@@ -260,25 +220,16 @@ function renderProducts() {
     });
   }
 
-  // Filter berdasarkan status
   const filter = document.getElementById("adminStatusFilter");
 
   if (filter && filter.value !== "ALL") {
     list = list.filter(function (p) {
-      return (
-        String(p.status || "")
-          .trim()
-          .toUpperCase() === filter.value
-      );
+      return String(p.status || "").toUpperCase() === filter.value;
     });
   }
 
-  /*
-   * SUMMARY MENGIKUTI FILTER
-   */
-  updateDashboard(list);
+  updateDashboard(products);
 
-  // Tampilkan produk hasil filter
   renderAdminProducts(list);
 }
 
@@ -557,59 +508,40 @@ function adminProductCard(product) {
 ================================================== */
 
 function updateDashboard(list) {
-  // Total produk berdasarkan filter
   const total = list.length;
 
-  // READY berdasarkan filter
-  const ready = list.filter(function (p) {
-    return (
-      String(p.status || "")
-        .trim()
-        .toUpperCase() === "READY"
-    );
-  }).length;
+  const ready = list.filter(
+    (p) => String(p.status || "").toUpperCase() === "READY",
+  ).length;
 
-  // SOLD berdasarkan filter
-  const sold = list.filter(function (p) {
-    return (
-      String(p.status || "")
-        .trim()
-        .toUpperCase() === "SOLD"
-    );
-  }).length;
+  const sold = list.filter(
+    (p) => String(p.status || "").toUpperCase() === "SOLD",
+  ).length;
 
-  // Total Modal
+  /*
+   * Karena kolom stok sudah dihilangkan,
+   * Total Modal dihitung dari seluruh produk
+   * berdasarkan Harga Beli.
+   *
+   * Jika setiap baris mewakili satu barang,
+   * maka total modal = jumlah Harga Beli.
+   */
+
   const totalModal = list.reduce(function (total, p) {
     return total + (Number(p.hargaBeli) || 0);
   }, 0);
 
-  // Total Penjualan
   const totalPenjualan = list
-    .filter(function (p) {
-      return (
-        String(p.status || "")
-          .trim()
-          .toUpperCase() === "SOLD"
-      );
-    })
+    .filter((p) => String(p.status || "").toUpperCase() === "SOLD")
     .reduce(function (total, p) {
       return total + (Number(p.hargaJual) || 0);
     }, 0);
 
-  // Total Profit
   const totalProfit = list
-    .filter(function (p) {
-      return (
-        String(p.status || "")
-          .trim()
-          .toUpperCase() === "SOLD"
-      );
-    })
+    .filter((p) => String(p.status || "").toUpperCase() === "SOLD")
     .reduce(function (total, p) {
       return total + (Number(p.profit) || 0);
     }, 0);
-
-  // Tampilkan ke dashboard
 
   document.getElementById("totalProduk").textContent = total;
 

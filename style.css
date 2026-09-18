@@ -302,7 +302,7 @@ body {
 .dashboard {
   display: grid;
 
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
 
   gap: 15px;
 
@@ -319,7 +319,7 @@ body {
 .stat-card span {
   display: block;
   color: #777;
-  font-size: 25px;
+  font-size: 13px;
   margin-bottom: 8px;
 }
 

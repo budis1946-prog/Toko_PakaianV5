@@ -7,7 +7,7 @@
 ================================================== */
 
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbwYtDzZcBObWxY9AJHT-QT5wtW-aqtaSpkbwlEeT4FQJU-YiffKK33HBR65sKEfMnNV/exec";
+  "https://script.google.com/macros/s/AKfycbwZOdXcLP7Uquczzp45QYGXPL2qLSgQspzP5SpJZH49gjvR7SQh7C1GxQc1aBAjnHAb/exec";
 
 const WHATSAPP_NUMBER = "6283160104255";
 

@@ -1,155 +1,277 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
 
-    <title>Toko Baju</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="stylesheet" href="style.css">
-</head>
+    <title>Toko Baju - Ashera.id</title>
 
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<header class="header">
+  <body>
+    <!-- ==================================================
+     HEADER
+================================================== -->
 
-    <div class="container header-inner">
+    <header class="header">
+      <div class="brand">
+        <div class="brand-logo">A</div>
 
-        <div class="logo">
-            TOKO BAJU
+        <div>
+          <h1>Ashera.id</h1>
+          <span>Toko Pakaian</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <span id="userInfo" class="user-info"> 🛍️ Buyer </span>
+
+        <button
+          id="adminLoginBtn"
+          class="btn btn-dark"
+          onclick="openLoginModal()"
+        >
+          🔐 Login Admin
+        </button>
+
+        <button
+          id="logoutBtn"
+          class="btn btn-danger hidden"
+          onclick="logoutAdmin()"
+        >
+          Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- ==================================================
+     BUYER AREA
+================================================== -->
+
+    <main id="buyerArea" class="container">
+      <section class="hero">
+        <div>
+          <h2>Koleksi Baju Terbaru</h2>
+
+          <p>Temukan pakaian pilihan Anda di Ashera.id</p>
+        </div>
+      </section>
+
+      <section class="catalog-toolbar">
+        <div class="search-box">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="🔎 Cari nama produk..."
+            oninput="renderProducts()"
+          />
         </div>
 
-        <div class="header-info">
-            Koleksi Terbaru
+        <select id="statusFilter" onchange="renderProducts()">
+          <option value="ALL">Semua</option>
+
+          <option value="READY">Ready</option>
+        </select>
+      </section>
+
+      <div id="loading" class="loading">Memuat produk...</div>
+
+      <div id="errorMessage" class="error-message hidden"></div>
+
+      <div id="productGrid" class="product-grid"></div>
+    </main>
+
+    <!-- ==================================================
+     ADMIN AREA
+================================================== -->
+
+    <main id="adminArea" class="container hidden">
+      <div class="admin-title">
+        <div>
+          <h2>Dashboard Admin</h2>
+
+          <p>Kelola data toko pakaian</p>
         </div>
 
+        <button class="btn btn-primary" onclick="openProductModal()">
+          ➕ Tambah Produk
+        </button>
+      </div>
+
+      <!-- DASHBOARD -->
+
+      <section class="dashboard">
+        <div class="stat-card">
+          <span>Total Produk</span>
+
+          <strong id="totalProduk"> 0 </strong>
+        </div>
+
+        <div class="stat-card ready">
+          <span>READY</span>
+
+          <strong id="totalReady"> 0 </strong>
+        </div>
+
+        <div class="stat-card sold">
+          <span>SOLD</span>
+
+          <strong id="totalSold"> 0 </strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Total Modal</span>
+
+          <strong id="totalModal"> Rp0 </strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Total Penjualan</span>
+
+          <strong id="totalPenjualan"> Rp0 </strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Total Profit</span>
+
+          <strong id="totalProfit"> Rp0 </strong>
+        </div>
+      </section>
+
+      <!-- FILTER ADMIN -->
+
+      <section class="catalog-toolbar">
+        <input
+          type="text"
+          id="adminSearchInput"
+          placeholder="🔎 Cari produk..."
+          oninput="renderProducts()"
+        />
+
+        <select id="adminStatusFilter" onchange="renderProducts()">
+          <option value="ALL">Semua Status</option>
+
+          <option value="READY">READY</option>
+
+          <option value="SOLD">SOLD</option>
+        </select>
+      </section>
+
+      <div id="adminProductGrid" class="product-grid"></div>
+    </main>
+
+    <!-- ==================================================
+     LOGIN MODAL
+================================================== -->
+
+    <div id="loginModal" class="modal hidden">
+      <div class="modal-content small">
+        <button class="modal-close" onclick="closeLoginModal()">×</button>
+
+        <h2>🔐 Login Admin</h2>
+
+        <form onsubmit="loginAdmin(event)">
+          <label> Username </label>
+
+          <input type="text" id="loginUsername" required />
+
+          <label> Password </label>
+
+          <input type="password" id="loginPassword" required />
+
+          <div id="loginError" class="form-error"></div>
+
+          <button type="submit" class="btn btn-primary full">Login</button>
+        </form>
+      </div>
     </div>
 
-</header>
+    <!-- ==================================================
+     PRODUCT MODAL
+================================================== -->
 
+    <div id="productModal" class="modal hidden">
+      <div class="modal-content">
+        <button class="modal-close" onclick="closeProductModal()">×</button>
 
-<main>
+        <h2 id="productModalTitle">Tambah Produk</h2>
 
-    <!-- HERO -->
-    <section class="hero">
+        <form onsubmit="saveProduct(event)">
+          <input type="hidden" id="productId" />
 
-        <div class="container">
+          <div class="form-group">
+            <label> Foto Produk </label>
 
-            <h1>Koleksi Baju</h1>
+            <input
+              type="file"
+              id="productPhoto"
+              accept="image/*"
+              onchange="previewPhoto(event)"
+            />
 
-            <p>
-                Temukan produk pilihan kami dengan harga terbaik.
-            </p>
+            <input type="hidden" id="productPhotoUrl" />
 
-        </div>
+            <div id="photoPreview" class="photo-preview"></div>
+          </div>
 
-    </section>
+          <div class="form-group">
+            <label> Nama Produk </label>
 
+            <input type="text" id="productName" required />
+          </div>
 
-    <!-- FILTER -->
-    <section class="filter-section">
+          <div class="form-group">
+            <label> Deskripsi </label>
 
-        <div class="container filter-wrapper">
+            <textarea id="productDescription" rows="4"></textarea>
+          </div>
 
-            <div class="search-box">
+          <div class="form-row">
+            <div class="form-group">
+              <label> Harga Beli </label>
 
-                <input
-                    type="text"
-                    id="searchInput"
-                    placeholder="Cari nama atau deskripsi produk..."
-                >
-
+              <input type="number" id="productBuyPrice" min="0" required />
             </div>
 
+            <div class="form-group">
+              <label> Harga Jual </label>
 
-            <div class="status-filter">
-
-                <button
-                    class="filter-btn active"
-                    data-status="ALL"
-                >
-                    Semua
-                </button>
-
-                <button
-                    class="filter-btn"
-                    data-status="READY"
-                >
-                    Ready
-                </button>
-
-                <button
-                    class="filter-btn"
-                    data-status="SOLD"
-                >
-                    Sold
-                </button>
-
+              <input type="number" id="productSellPrice" min="0" required />
             </div>
+          </div>
 
-        </div>
-
-    </section>
-
-
-    <!-- LOADING -->
-    <section id="loading">
-
-        <div class="container">
-
-            <div class="loading-box">
-                Memuat produk...
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- PRODUCT -->
-    <section class="products-section">
-
-        <div class="container">
-
-            <div
-                id="productGrid"
-                class="product-grid"
-            ></div>
-
-
-            <div
-                id="emptyState"
-                class="empty-state"
-                style="display:none;"
-            >
-
-                <h3>Produk tidak ditemukan</h3>
-
-                <p>
-                    Coba gunakan kata pencarian lain.
-                </p>
-
-            </div>
-
-        </div>
-
-    </section>
-
-</main>
-
-
-<footer>
-
-    <div class="container">
-
-        © 2026 Toko Baju
-
+          <button
+            type="submit"
+            class="btn btn-primary full"
+            id="saveProductBtn"
+          >
+            Simpan Produk
+          </button>
+        </form>
+      </div>
     </div>
 
-</footer>
+    <!-- ==================================================
+     IMAGE VIEWER
+================================================== -->
 
+    <div
+      id="imageViewer"
+      class="image-viewer hidden"
+      onclick="closeImageViewer()"
+    >
+      <button class="image-viewer-close">×</button>
 
-<script src="js/catalog.js"></script>
+      <img
+        id="largeImage"
+        src=""
+        alt="Foto Produk"
+        onclick="event.stopPropagation()"
+      />
+    </div>
 
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>

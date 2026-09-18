@@ -1,19 +1,19 @@
-// ======================================================
-// TOKO BAJU - JAVASCRIPT FINAL
-// ======================================================
+/****************************************************
+ * TOKO PAKAIAN - JAVASCRIPT
+ ****************************************************/
 
-// ======================================================
-// CONFIG
-// ======================================================
+/* ==================================================
+   CONFIG
+================================================== */
 
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbyBtVfnJ1rTVofpxlfSAwQ6mg86IFc142f-Hc-2WQxsKMrmvbPu6Q_qgGhBpHda7ARq/exec";
+  "https://script.google.com/macros/s/AKfycbwYtDzZcBObWxY9AJHT-QT5wtW-aqtaSpkbwlEeT4FQJU-YiffKK33HBR65sKEfMnNV/exec";
 
 const WHATSAPP_NUMBER = "6283160104255";
 
-// ======================================================
-// GLOBAL
-// ======================================================
+/* ==================================================
+   GLOBAL
+================================================== */
 
 let products = [];
 
@@ -23,291 +23,106 @@ let editId = null;
 
 let currentPhotoUrl = "";
 
-// ======================================================
-// DOM READY
-// ======================================================
+/* ==================================================
+   START
+================================================== */
 
 document.addEventListener("DOMContentLoaded", function () {
   checkSession();
-
-  setupEvents();
 });
 
-// ======================================================
-// SETUP EVENTS
-// ======================================================
-
-function setupEvents() {
-  const searchInput = document.getElementById("searchInput");
-
-  const statusFilter = document.getElementById("statusFilter");
-
-  if (searchInput) {
-    searchInput.addEventListener("input", renderProducts);
-  }
-
-  if (statusFilter) {
-    statusFilter.addEventListener("change", renderProducts);
-  }
-
-  const addButton = document.getElementById("addProductButton");
-
-  if (addButton) {
-    addButton.addEventListener("click", openAddProduct);
-  }
-
-  const loginButton = document.getElementById("adminLoginButton");
-
-  if (loginButton) {
-    loginButton.addEventListener("click", openLogin);
-  }
-
-  const logoutButton = document.getElementById("logoutButton");
-
-  if (logoutButton) {
-    logoutButton.addEventListener("click", logoutAdmin);
-  }
-
-  const loginForm = document.getElementById("adminLoginForm");
-
-  if (loginForm) {
-    loginForm.addEventListener("submit", loginAdmin);
-  }
-
-  const productForm = document.getElementById("productForm");
-
-  if (productForm) {
-    productForm.addEventListener("submit", saveProduct);
-  }
-
-  const hargaBeli = document.getElementById("hargaBeli");
-
-  const hargaJual = document.getElementById("hargaJual");
-
-  if (hargaBeli) {
-    hargaBeli.addEventListener("input", calculateProfit);
-  }
-
-  if (hargaJual) {
-    hargaJual.addEventListener("input", calculateProfit);
-  }
-
-  const foto = document.getElementById("foto");
-
-  if (foto) {
-    foto.addEventListener("change", previewPhoto);
-  }
-
-  const closeViewer = document.getElementById("closeImageViewer");
-
-  if (closeViewer) {
-    closeViewer.addEventListener("click", closeImageViewer);
-  }
-
-  const imageViewer = document.getElementById("imageViewer");
-
-  if (imageViewer) {
-    imageViewer.addEventListener("click", function (event) {
-      if (event.target === imageViewer) {
-        closeImageViewer();
-      }
-    });
-  }
-}
-
-// ======================================================
-// SESSION
-// ======================================================
+/* ==================================================
+   SESSION
+================================================== */
 
 function checkSession() {
-  const saved = localStorage.getItem("tokoBajuAdmin");
+  const saved = localStorage.getItem("tokoBajuUser");
 
-  if (!saved) {
-    showBuyerMode();
+  if (saved) {
+    try {
+      const user = JSON.parse(saved);
 
-    return;
-  }
+      if (user && user.role === "ADMIN" && user.token) {
+        currentUser = user;
 
-  try {
-    const session = JSON.parse(saved);
+        showAdminMode();
 
-    if (session && session.role === "ADMIN" && session.token) {
-      currentUser = session;
-
-      showAdminMode();
-    } else {
-      showBuyerMode();
+        return;
+      }
+    } catch (error) {
+      console.log(error);
     }
-  } catch (error) {
-    localStorage.removeItem("tokoBajuAdmin");
-
-    showBuyerMode();
   }
+
+  // DEFAULT = BUYER
+  currentUser = {
+    role: "BUYER",
+  };
+
+  showBuyerMode();
 }
 
-// ======================================================
-// ADMIN CHECK
-// ======================================================
-
-function isAdmin() {
-  return currentUser && currentUser.role === "ADMIN" && currentUser.token;
-}
-
-// ======================================================
-// BUYER MODE
-// ======================================================
+/* ==================================================
+   BUYER MODE
+================================================== */
 
 function showBuyerMode() {
-  currentUser = null;
+  document.getElementById("buyerArea").classList.remove("hidden");
 
-  const dashboard = document.getElementById("adminDashboard");
+  document.getElementById("adminArea").classList.add("hidden");
 
-  const buyerInfo = document.getElementById("buyerInfo");
+  document.getElementById("adminLoginBtn").classList.remove("hidden");
 
-  const addButton = document.getElementById("addProductButton");
+  document.getElementById("logoutBtn").classList.add("hidden");
 
-  const loginButton = document.getElementById("adminLoginButton");
-
-  const logoutButton = document.getElementById("logoutButton");
-
-  const modeInfo = document.getElementById("modeInfo");
-
-  if (dashboard) {
-    dashboard.style.display = "none";
-  }
-
-  if (buyerInfo) {
-    buyerInfo.style.display = "block";
-  }
-
-  if (addButton) {
-    addButton.style.display = "none";
-  }
-
-  if (loginButton) {
-    loginButton.style.display = "inline-flex";
-  }
-
-  if (logoutButton) {
-    logoutButton.style.display = "none";
-  }
-
-  if (modeInfo) {
-    modeInfo.textContent = "🛍️ Buyer";
-  }
-
-  /*
-   * Buyer hanya melihat READY.
-   */
-
-  updateBuyerStatusFilter();
+  document.getElementById("userInfo").textContent = "🛍️ Buyer";
 
   loadProducts();
 }
 
-// ======================================================
-// ADMIN MODE
-// ======================================================
+/* ==================================================
+   ADMIN MODE
+================================================== */
 
 function showAdminMode() {
-  const dashboard = document.getElementById("adminDashboard");
+  document.getElementById("buyerArea").classList.add("hidden");
 
-  const buyerInfo = document.getElementById("buyerInfo");
+  document.getElementById("adminArea").classList.remove("hidden");
 
-  const addButton = document.getElementById("addProductButton");
+  document.getElementById("adminLoginBtn").classList.add("hidden");
 
-  const loginButton = document.getElementById("adminLoginButton");
+  document.getElementById("logoutBtn").classList.remove("hidden");
 
-  const logoutButton = document.getElementById("logoutButton");
-
-  const modeInfo = document.getElementById("modeInfo");
-
-  if (dashboard) {
-    dashboard.style.display = "grid";
-  }
-
-  if (buyerInfo) {
-    buyerInfo.style.display = "none";
-  }
-
-  if (addButton) {
-    addButton.style.display = "inline-flex";
-  }
-
-  if (loginButton) {
-    loginButton.style.display = "none";
-  }
-
-  if (logoutButton) {
-    logoutButton.style.display = "inline-flex";
-  }
-
-  if (modeInfo) {
-    modeInfo.textContent = "👨‍💼 Admin: " + (currentUser.username || "");
-  }
-
-  updateBuyerStatusFilter();
+  document.getElementById("userInfo").textContent =
+    "🔐 Admin: " + (currentUser.username || "");
 
   loadProducts();
 }
 
-// ======================================================
-// STATUS FILTER
-// ======================================================
-
-function updateBuyerStatusFilter() {
-  const filter = document.getElementById("statusFilter");
-
-  if (!filter) {
-    return;
-  }
-
-  if (isAdmin()) {
-    filter.innerHTML = `
-      <option value="ALL">
-        Semua Status
-      </option>
-
-      <option value="READY">
-        READY
-      </option>
-
-      <option value="SOLD">
-        SOLD
-      </option>
-    `;
-  } else {
-    filter.innerHTML = `
-      <option value="ALL">
-        Semua Produk
-      </option>
-
-      <option value="READY">
-        READY
-      </option>
-    `;
-  }
-}
-
-// ======================================================
-// LOAD PRODUCTS
-// ======================================================
+/* ==================================================
+   LOAD PRODUCTS
+================================================== */
 
 async function loadProducts() {
   const loading = document.getElementById("loading");
 
   if (loading) {
-    loading.style.display = "block";
+    loading.classList.remove("hidden");
   }
 
   try {
     let url = API_URL + "?action=list";
 
-    if (isAdmin()) {
+    // Admin menggunakan token
+    if (currentUser && currentUser.role === "ADMIN" && currentUser.token) {
       url += "&token=" + encodeURIComponent(currentUser.token);
     }
 
     const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
 
     const result = await response.json();
 
@@ -315,205 +130,212 @@ async function loadProducts() {
       throw new Error(result.message || "Gagal memuat data.");
     }
 
-    products = result.data || [];
+    products = Array.isArray(result.data) ? result.data : [];
 
     renderProducts();
   } catch (error) {
     console.error(error);
 
-    const container = document.getElementById("productContainer");
-
-    if (container) {
-      container.innerHTML = `
-
-        <div class="empty">
-
-          <h3>
-            ⚠️ Gagal memuat data
-          </h3>
-
-          <p>
-            ${escapeHtml(error.message)}
-          </p>
-
-        </div>
-      `;
-    }
+    showError(
+      "Gagal memuat data produk. " + "Periksa URL API dan koneksi internet.",
+    );
   } finally {
     if (loading) {
-      loading.style.display = "none";
+      loading.classList.add("hidden");
     }
   }
 }
 
-// ======================================================
-// RENDER PRODUCTS
-// ======================================================
+/* ==================================================
+   RENDER PRODUCTS
+================================================== */
 
 function renderProducts() {
-  const searchInput = document.getElementById("searchInput");
+  let list = [...products];
 
-  const statusFilter = document.getElementById("statusFilter");
+  /* ================================================
+     BUYER
+  ================================================ */
 
-  const container = document.getElementById("productContainer");
+  if (!currentUser || currentUser.role !== "ADMIN") {
+    // HANYA READY
+    list = list.filter(function (p) {
+      return (
+        String(p.status || "")
+          .trim()
+          .toUpperCase() === "READY"
+      );
+    });
 
-  if (!container) {
+    // SEARCH BUYER
+    const searchInput = document.getElementById("searchInput");
+
+    const keyword = searchInput ? searchInput.value.trim().toLowerCase() : "";
+
+    if (keyword) {
+      list = list.filter(function (p) {
+        return (
+          String(p.nama || "")
+            .toLowerCase()
+            .includes(keyword) ||
+          String(p.deskripsi || "")
+            .toLowerCase()
+            .includes(keyword)
+        );
+      });
+    }
+
+    // FILTER READY
+    const filter = document.getElementById("statusFilter");
+
+    if (filter && filter.value !== "ALL") {
+      list = list.filter(function (p) {
+        return String(p.status).toUpperCase() === filter.value;
+      });
+    }
+
+    renderBuyerProducts(list);
+
     return;
   }
 
+  /* ================================================
+     ADMIN
+  ================================================ */
+
+  const searchInput = document.getElementById("adminSearchInput");
+
   const keyword = searchInput ? searchInput.value.trim().toLowerCase() : "";
 
-  const status = statusFilter ? statusFilter.value : "ALL";
-
-  let filtered = products.filter(function (product) {
-    const nama = String(product.nama || "").toLowerCase();
-
-    const deskripsi = String(product.deskripsi || "").toLowerCase();
-
-    const productStatus = String(product.status || "").toUpperCase();
-
-    const matchSearch = nama.includes(keyword) || deskripsi.includes(keyword);
-
-    const matchStatus = status === "ALL" || productStatus === status;
-
-    return matchSearch && matchStatus;
-  });
-
-  /*
-   * BUYER
-   *
-   * Produk SOLD tidak pernah
-   * ditampilkan.
-   */
-
-  if (!isAdmin()) {
-    filtered = filtered.filter(function (product) {
-      return String(product.status || "").toUpperCase() !== "SOLD";
+  if (keyword) {
+    list = list.filter(function (p) {
+      return (
+        String(p.nama || "")
+          .toLowerCase()
+          .includes(keyword) ||
+        String(p.deskripsi || "")
+          .toLowerCase()
+          .includes(keyword)
+      );
     });
   }
 
-  /*
-   * ADMIN
-   *
-   * Dashboard tetap menghitung
-   * READY + SOLD.
-   */
+  const filter = document.getElementById("adminStatusFilter");
 
-  if (isAdmin()) {
-    updateDashboard(filtered);
+  if (filter && filter.value !== "ALL") {
+    list = list.filter(function (p) {
+      return String(p.status || "").toUpperCase() === filter.value;
+    });
   }
 
-  if (!filtered.length) {
-    container.innerHTML = `
+  updateDashboard(products);
 
-      <div class="empty">
+  renderAdminProducts(list);
+}
 
-        <h3>
-          📭 Tidak ada produk
-        </h3>
+/* ==================================================
+   BUYER PRODUCTS
+================================================== */
 
-        <p style="margin-top:8px">
-          ${
-            isAdmin()
-              ? "Belum ada produk yang sesuai."
-              : "Saat ini belum ada produk tersedia."
-          }
+function renderBuyerProducts(list) {
+  const grid = document.getElementById("productGrid");
+
+  if (!grid) return;
+
+  if (list.length === 0) {
+    grid.innerHTML = `
+
+      <div style="
+        grid-column:1/-1;
+        text-align:center;
+        padding:50px;
+        color:#777;
+      ">
+
+        <h3>Produk belum tersedia</h3>
+
+        <p>
+          Belum ada produk READY.
         </p>
 
       </div>
+
     `;
 
     return;
   }
 
-  container.innerHTML = filtered
-    .map(function (product) {
-      return isAdmin() ? adminProductCard(product) : buyerProductCard(product);
-    })
-    .join("");
+  grid.innerHTML = list.map(buyerProductCard).join("");
 }
 
-// ======================================================
-// BUYER CARD
-// ======================================================
+/* ==================================================
+   BUYER CARD
+================================================== */
 
 function buyerProductCard(product) {
-  const foto = product.foto || "";
+  const image =
+    product.foto || "https://via.placeholder.com/600x600?text=No+Image";
+
+  const whatsappMessage = encodeURIComponent(
+    "Halo Ashera.id, saya ingin membeli:\n\n" +
+      "Nama: " +
+      (product.nama || "") +
+      "\n" +
+      "Harga: " +
+      formatRupiah(product.hargaJual) +
+      "\n\nApakah masih tersedia?",
+  );
+
+  const whatsappUrl =
+    "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + whatsappMessage;
 
   return `
 
     <div class="product-card">
 
-      <div
-        class="product-image-wrapper"
-        onclick="openImageViewer('${escapeAttribute(foto)}')"
+      <img
+        class="product-image"
+        src="${escapeAttribute(image)}"
+        alt="${escapeAttribute(product.nama)}"
+        loading="lazy"
+        onclick="openImageViewer('${escapeAttribute(image)}')"
+        onerror="this.src='https://via.placeholder.com/600x600?text=Gambar+Gagal+Dimuat'"
       >
 
-        ${
-          foto
-            ? `
 
-              <img
-                src="${escapeAttribute(foto)}"
-                class="product-image"
-                alt="${escapeAttribute(product.nama)}"
-                onerror="this.src=''; this.alt='Gambar gagal dimuat'"
-              >
+      <div class="product-body">
 
-            `
-            : `
-
-              <div class="no-image">
-                📷 Tidak ada foto
-              </div>
-
-            `
-        }
-
-      </div>
-
-
-      <div class="product-content">
-
-        <h3>
+        <div class="product-name">
           ${escapeHtml(product.nama)}
-        </h3>
-
-
-        <p class="description">
-          ${escapeHtml(product.deskripsi)}
-        </p>
-
-
-        <div class="price">
-
-          ${formatRupiah(product.hargaJual)}
-
         </div>
 
 
-        <div class="product-info">
+        <div class="product-description">
+          ${escapeHtml(product.deskripsi || "-")}
+        </div>
 
-          <span>
-            Stok:
-            <strong>
-              ${Number(product.stok || 0)}
-            </strong>
-          </span>
 
-          <span class="status ready">
+        <div class="product-price">
+          ${formatRupiah(product.hargaJual)}
+        </div>
+
+
+        <div class="product-meta">
+
+          <span class="status status-ready">
             READY
           </span>
 
         </div>
 
 
-        <button
-          class="btn-whatsapp"
-          onclick="beliWhatsApp('${escapeAttribute(product.id)}')"
+        <a
+          href="${whatsappUrl}"
+          target="_blank"
+          class="whatsapp-btn"
         >
           💬 Beli via WhatsApp
-        </button>
+        </a>
 
       </div>
 
@@ -522,78 +344,121 @@ function buyerProductCard(product) {
   `;
 }
 
-// ======================================================
-// ADMIN CARD
-// ======================================================
+/* ==================================================
+   ADMIN PRODUCTS
+================================================== */
+
+function renderAdminProducts(list) {
+  const grid = document.getElementById("adminProductGrid");
+
+  if (!grid) return;
+
+  if (list.length === 0) {
+    grid.innerHTML = `
+
+      <div style="
+        grid-column:1/-1;
+        text-align:center;
+        padding:50px;
+        color:#777;
+      ">
+
+        <h3>Tidak ada produk</h3>
+
+      </div>
+
+    `;
+
+    return;
+  }
+
+  grid.innerHTML = list.map(adminProductCard).join("");
+}
+
+/* ==================================================
+   ADMIN CARD
+================================================== */
 
 function adminProductCard(product) {
-  const status = String(product.status || "").toUpperCase();
+  const image =
+    product.foto || "https://via.placeholder.com/600x600?text=No+Image";
 
-  const statusClass = status === "SOLD" ? "sold" : "ready";
+  const status = String(product.status || "READY").toUpperCase();
+
+  let actions = "";
+
+  if (status === "READY") {
+    actions = `
+
+      <button
+        class="btn btn-success"
+        onclick="markProductSold('${escapeAttribute(product.id)}')"
+      >
+        ✓ SOLD
+      </button>
+
+    `;
+  }
 
   return `
 
     <div class="product-card">
 
-      <div
-        class="product-image-wrapper"
-        onclick="openImageViewer('${escapeAttribute(product.foto || "")}')"
+      <img
+        class="product-image"
+        src="${escapeAttribute(image)}"
+        alt="${escapeAttribute(product.nama)}"
+        loading="lazy"
+        onclick="openImageViewer('${escapeAttribute(image)}')"
+        onerror="this.src='https://via.placeholder.com/600x600?text=Gambar+Gagal+Dimuat'"
       >
 
-        ${
-          product.foto
-            ? `
 
-              <img
-                src="${escapeAttribute(product.foto)}"
-                class="product-image"
-                alt="${escapeAttribute(product.nama)}"
-                onerror="this.src=''; this.alt='Gambar gagal dimuat'"
-              >
+      <div class="product-body">
 
-            `
-            : `
-
-              <div class="no-image">
-                📷 Tidak ada foto
-              </div>
-
-            `
-        }
-
-      </div>
-
-
-      <div class="product-content">
-
-        <h3>
+        <div class="product-name">
           ${escapeHtml(product.nama)}
-        </h3>
+        </div>
 
 
-        <p class="description">
-          ${escapeHtml(product.deskripsi)}
-        </p>
+        <div class="product-description">
+          ${escapeHtml(product.deskripsi || "-")}
+        </div>
 
 
-        <div class="admin-price">
+        <div style="margin-bottom:8px">
+          <small>
+            Harga Beli
+          </small>
 
           <div>
-            Harga Beli:
             <strong>
               ${formatRupiah(product.hargaBeli)}
             </strong>
           </div>
+        </div>
 
-          <div>
-            Harga Jual:
-            <strong>
-              ${formatRupiah(product.hargaJual)}
-            </strong>
+
+        <div style="margin-bottom:8px">
+
+          <small>
+            Harga Jual
+          </small>
+
+          <div class="product-price">
+            ${formatRupiah(product.hargaJual)}
           </div>
 
+        </div>
+
+
+        <div style="margin-bottom:10px">
+
+          <small>
+            Profit
+          </small>
+
           <div>
-            Profit:
             <strong>
               ${formatRupiah(product.profit)}
             </strong>
@@ -602,51 +467,28 @@ function adminProductCard(product) {
         </div>
 
 
-        <div class="product-info">
-
-          <span>
-            Stok:
-            <strong>
-              ${Number(product.stok || 0)}
-            </strong>
-          </span>
-
-
-          <span class="status ${statusClass}">
-            ${status}
-          </span>
-
-        </div>
+        <span
+          class="status ${status === "SOLD" ? "status-sold" : "status-ready"}"
+        >
+          ${status}
+        </span>
 
 
         <div class="admin-actions">
 
-          ${
-            status !== "SOLD"
-              ? `
-
-                <button
-                  class="btn-sold"
-                  onclick="markProductSold('${escapeAttribute(product.id)}')"
-                >
-                  ✓ SOLD
-                </button>
-
-              `
-              : ""
-          }
-
-
           <button
-            class="btn-edit"
+            class="btn btn-warning"
             onclick="editProduct('${escapeAttribute(product.id)}')"
           >
             ✏️ Edit
           </button>
 
 
+          ${actions}
+
+
           <button
-            class="btn-delete"
+            class="btn btn-danger"
             onclick="deleteProduct('${escapeAttribute(product.id)}')"
           >
             🗑️ Hapus
@@ -661,235 +503,91 @@ function adminProductCard(product) {
   `;
 }
 
-// ======================================================
-// DASHBOARD
-// ======================================================
+/* ==================================================
+   DASHBOARD
+================================================== */
 
 function updateDashboard(list) {
-  let totalProduk = 0;
+  const total = list.length;
 
-  let totalReady = 0;
+  const ready = list.filter(
+    (p) => String(p.status || "").toUpperCase() === "READY",
+  ).length;
 
-  let totalSold = 0;
+  const sold = list.filter(
+    (p) => String(p.status || "").toUpperCase() === "SOLD",
+  ).length;
 
-  let totalModal = 0;
+  /*
+   * Karena kolom stok sudah dihilangkan,
+   * Total Modal dihitung dari seluruh produk
+   * berdasarkan Harga Beli.
+   *
+   * Jika setiap baris mewakili satu barang,
+   * maka total modal = jumlah Harga Beli.
+   */
 
-  let totalPenjualan = 0;
+  const totalModal = list.reduce(function (total, p) {
+    return total + (Number(p.hargaBeli) || 0);
+  }, 0);
 
-  let totalProfit = 0;
+  const totalPenjualan = list
+    .filter((p) => String(p.status || "").toUpperCase() === "SOLD")
+    .reduce(function (total, p) {
+      return total + (Number(p.hargaJual) || 0);
+    }, 0);
 
-  list.forEach(function (product) {
-    totalProduk++;
+  const totalProfit = list
+    .filter((p) => String(p.status || "").toUpperCase() === "SOLD")
+    .reduce(function (total, p) {
+      return total + (Number(p.profit) || 0);
+    }, 0);
 
-    const status = String(product.status || "").toUpperCase();
+  document.getElementById("totalProduk").textContent = total;
 
-    const hargaBeli = Number(product.hargaBeli || 0);
+  document.getElementById("totalReady").textContent = ready;
 
-    const hargaJual = Number(product.hargaJual || 0);
+  document.getElementById("totalSold").textContent = sold;
 
-    const profit = Number(product.profit || 0);
+  document.getElementById("totalModal").textContent = formatRupiah(totalModal);
 
-    const stok = Number(product.stok || 0);
+  document.getElementById("totalPenjualan").textContent =
+    formatRupiah(totalPenjualan);
 
-    /*
-     * Gunakan STOK AWAL.
-     *
-     * Jadi SOLD dengan stok tersedia
-     * 0 tetap mempunyai modal.
-     */
-
-    let stokAwal = Number(product.stokAwal || product.stokawal || 0);
-
-    /*
-     * Untuk data lama yang belum
-     * mempunyai stokawal:
-     *
-     * kalau stok masih > 0,
-     * gunakan stok.
-     */
-
-    if (!stokAwal && stok > 0) {
-      stokAwal = stok;
-    }
-
-    // ----------------------------------
-    // STATUS
-    // ----------------------------------
-
-    if (status === "READY") {
-      totalReady++;
-    }
-
-    if (status === "SOLD") {
-      totalSold++;
-    }
-
-    // ----------------------------------
-    // TOTAL MODAL
-    //
-    // READY + SOLD
-    //
-    // Harga Beli × Stok Awal
-    // ----------------------------------
-
-    totalModal += hargaBeli * stokAwal;
-
-    // ----------------------------------
-    // PENJUALAN
-    // ----------------------------------
-
-    if (status === "SOLD") {
-      totalPenjualan += hargaJual;
-
-      totalProfit += profit;
-    }
-  });
-
-  setText("totalProduk", totalProduk);
-
-  setText("totalReady", totalReady);
-
-  setText("totalSold", totalSold);
-
-  setText("totalModal", formatRupiah(totalModal));
-
-  setText("totalPenjualan", formatRupiah(totalPenjualan));
-
-  setText("totalProfit", formatRupiah(totalProfit));
+  document.getElementById("totalProfit").textContent =
+    formatRupiah(totalProfit);
 }
 
-// ======================================================
-// ADD PRODUCT
-// ======================================================
+/* ==================================================
+   LOGIN MODAL
+================================================== */
 
-function openAddProduct() {
-  editId = null;
+function openLoginModal() {
+  document.getElementById("loginModal").classList.remove("hidden");
 
-  currentPhotoUrl = "";
-
-  setText("productModalTitle", "Tambah Produk");
-
-  resetProductForm();
-
-  showModal("productModal");
+  document.getElementById("loginUsername").focus();
 }
 
-// ======================================================
-// EDIT PRODUCT
-// ======================================================
+function closeLoginModal() {
+  document.getElementById("loginModal").classList.add("hidden");
 
-function editProduct(id) {
-  const product = products.find(function (item) {
-    return String(item.id) === String(id);
-  });
-
-  if (!product) {
-    alert("Produk tidak ditemukan.");
-
-    return;
-  }
-
-  editId = product.id;
-
-  currentPhotoUrl = product.foto || "";
-
-  setText("productModalTitle", "Edit Produk");
-
-  setValue("productId", product.id);
-
-  setValue("nama", product.nama);
-
-  setValue("deskripsi", product.deskripsi);
-
-  setValue("hargaBeli", product.hargaBeli);
-
-  setValue("hargaJual", product.hargaJual);
-
-  setValue("stok", product.stok);
-
-  const preview = document.getElementById("photoPreview");
-
-  if (preview && product.foto) {
-    preview.src = product.foto;
-
-    preview.style.display = "block";
-  }
-
-  calculateProfit();
-
-  showModal("productModal");
+  document.getElementById("loginError").textContent = "";
 }
 
-// ======================================================
-// RESET FORM
-// ======================================================
-
-function resetProductForm() {
-  const form = document.getElementById("productForm");
-
-  if (form) {
-    form.reset();
-  }
-
-  setValue("productId", "");
-
-  setText("profitPreview", "Rp0");
-
-  const preview = document.getElementById("photoPreview");
-
-  if (preview) {
-    preview.src = "";
-
-    preview.style.display = "none";
-  }
-
-  const message = document.getElementById("formMessage");
-
-  if (message) {
-    message.textContent = "";
-  }
-}
-
-// ======================================================
-// CLOSE PRODUCT
-// ======================================================
-
-function closeProduct() {
-  hideModal("productModal");
-}
-
-// ======================================================
-// LOGIN MODAL
-// ======================================================
-
-function openLogin() {
-  const modal = document.getElementById("adminLoginModal");
-
-  if (modal) {
-    modal.style.display = "flex";
-  }
-}
-
-function closeLogin() {
-  hideModal("adminLoginModal");
-}
-
-// ======================================================
-// LOGIN ADMIN
-// ======================================================
+/* ==================================================
+   LOGIN ADMIN
+================================================== */
 
 async function loginAdmin(event) {
   event.preventDefault();
 
-  const username = getValue("loginUsername");
+  const username = document.getElementById("loginUsername").value.trim();
 
-  const password = getValue("loginPassword");
+  const password = document.getElementById("loginPassword").value;
 
-  const message = document.getElementById("loginMessage");
+  const errorBox = document.getElementById("loginError");
 
-  if (message) {
-    message.textContent = "Memproses login...";
-  }
+  errorBox.textContent = "Sedang login...";
 
   try {
     const result = await postData({
@@ -901,209 +599,220 @@ async function loginAdmin(event) {
     });
 
     if (!result.success) {
-      throw new Error(result.message || "Login gagal.");
+      errorBox.textContent = result.message || "Login gagal.";
+
+      return;
     }
 
     currentUser = {
       username: result.username,
 
-      role: result.role,
+      role: "ADMIN",
 
       token: result.token,
     };
 
-    localStorage.setItem("tokoBajuAdmin", JSON.stringify(currentUser));
+    localStorage.setItem(
+      "tokoBajuUser",
 
-    closeLogin();
+      JSON.stringify(currentUser),
+    );
+
+    document.getElementById("loginUsername").value = "";
+
+    document.getElementById("loginPassword").value = "";
+
+    closeLoginModal();
 
     showAdminMode();
   } catch (error) {
-    if (message) {
-      message.textContent = error.message;
-    }
+    errorBox.textContent = error.message || "Login gagal.";
   }
 }
 
-// ======================================================
-// LOGOUT
-// ======================================================
+/* ==================================================
+   LOGOUT
+================================================== */
 
 function logoutAdmin() {
-  localStorage.removeItem("tokoBajuAdmin");
+  localStorage.removeItem("tokoBajuUser");
 
-  currentUser = null;
+  currentUser = {
+    role: "BUYER",
+  };
 
   showBuyerMode();
 }
 
-// ======================================================
-// PREVIEW PHOTO
-// ======================================================
+/* ==================================================
+   PRODUCT MODAL
+================================================== */
 
-async function previewPhoto(event) {
-  const file = event.target.files[0];
+function openProductModal() {
+  editId = null;
 
-  if (!file) {
+  currentPhotoUrl = "";
+
+  document.getElementById("productModalTitle").textContent = "Tambah Produk";
+
+  document.getElementById("productId").value = "";
+
+  document.getElementById("productName").value = "";
+
+  document.getElementById("productDescription").value = "";
+
+  document.getElementById("productBuyPrice").value = "";
+
+  document.getElementById("productSellPrice").value = "";
+
+  document.getElementById("productPhoto").value = "";
+
+  document.getElementById("productPhotoUrl").value = "";
+
+  document.getElementById("photoPreview").innerHTML = "";
+
+  document.getElementById("productModal").classList.remove("hidden");
+}
+
+function closeProductModal() {
+  document.getElementById("productModal").classList.add("hidden");
+}
+
+/* ==================================================
+   EDIT PRODUCT
+================================================== */
+
+function editProduct(id) {
+  const product = products.find((p) => String(p.id) === String(id));
+
+  if (!product) {
+    alert("Produk tidak ditemukan.");
+
     return;
   }
 
-  /*
-   * Maksimal 5 MB
-   */
+  editId = product.id;
 
-  if (file.size > 5 * 1024 * 1024) {
-    alert("Foto terlalu besar. Maksimal 5 MB.");
+  currentPhotoUrl = product.foto || "";
 
-    event.target.value = "";
+  document.getElementById("productModalTitle").textContent = "Edit Produk";
 
-    return;
+  document.getElementById("productId").value = product.id;
+
+  document.getElementById("productName").value = product.nama || "";
+
+  document.getElementById("productDescription").value = product.deskripsi || "";
+
+  document.getElementById("productBuyPrice").value = product.hargaBeli || 0;
+
+  document.getElementById("productSellPrice").value = product.hargaJual || 0;
+
+  document.getElementById("productPhotoUrl").value = product.foto || "";
+
+  document.getElementById("productPhoto").value = "";
+
+  if (product.foto) {
+    document.getElementById("photoPreview").innerHTML = `
+
+        <img
+          src="${escapeAttribute(product.foto)}"
+          onerror="this.style.display='none'"
+        >
+
+      `;
   }
 
-  try {
-    const compressed = await compressImage(file);
-
-    currentPhotoUrl = compressed;
-
-    const preview = document.getElementById("photoPreview");
-
-    if (preview) {
-      preview.src = compressed;
-
-      preview.style.display = "block";
-    }
-  } catch (error) {
-    alert("Gagal memproses foto.");
-  }
+  document.getElementById("productModal").classList.remove("hidden");
 }
 
-// ======================================================
-// COMPRESS IMAGE
-// ======================================================
-
-function compressImage(file) {
-  return new Promise(function (resolve, reject) {
-    const reader = new FileReader();
-
-    reader.onload = function (event) {
-      const image = new Image();
-
-      image.onload = function () {
-        const maxWidth = 1200;
-
-        let width = image.width;
-
-        let height = image.height;
-
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-
-          width = maxWidth;
-        }
-
-        const canvas = document.createElement("canvas");
-
-        canvas.width = width;
-
-        canvas.height = height;
-
-        const context = canvas.getContext("2d");
-
-        context.drawImage(image, 0, 0, width, height);
-
-        resolve(canvas.toDataURL("image/jpeg", 0.75));
-      };
-
-      image.onerror = reject;
-
-      image.src = event.target.result;
-    };
-
-    reader.onerror = reject;
-
-    reader.readAsDataURL(file);
-  });
-}
-
-// ======================================================
-// UPLOAD PHOTO
-// ======================================================
-
-async function uploadPhoto() {
-  if (!currentPhotoUrl) {
-    return "";
-  }
-
-  /*
-   * Jika foto tidak berubah
-   * dan sudah berupa URL Drive,
-   * jangan upload lagi.
-   */
-
-  if (currentPhotoUrl.startsWith("http")) {
-    return currentPhotoUrl;
-  }
-
-  const result = await postData({
-    action: "upload",
-
-    token: currentUser.token,
-
-    base64: currentPhotoUrl,
-
-    fileName: "produk_" + Date.now() + ".jpg",
-  });
-
-  if (!result.success) {
-    throw new Error(result.message || "Upload foto gagal.");
-  }
-
-  return result.url;
-}
-
-// ======================================================
-// SAVE PRODUCT
-// ======================================================
+/* ==================================================
+   SAVE PRODUCT
+================================================== */
 
 async function saveProduct(event) {
   event.preventDefault();
 
-  if (!isAdmin()) {
-    alert("Silakan login sebagai Admin.");
+  const button = document.getElementById("saveProductBtn");
 
-    return;
-  }
+  button.disabled = true;
 
-  const button = document.getElementById("saveProductButton");
-
-  const message = document.getElementById("formMessage");
+  button.textContent = "Menyimpan...";
 
   try {
-    if (button) {
-      button.disabled = true;
+    const id = document.getElementById("productId").value.trim();
 
-      button.textContent = "Menyimpan...";
+    const nama = document.getElementById("productName").value.trim();
+
+    const deskripsi = document
+      .getElementById("productDescription")
+      .value.trim();
+
+    const hargaBeli =
+      Number(document.getElementById("productBuyPrice").value) || 0;
+
+    const hargaJual =
+      Number(document.getElementById("productSellPrice").value) || 0;
+
+    let foto = document.getElementById("productPhotoUrl").value.trim();
+
+    const photoFile = document.getElementById("productPhoto").files[0];
+
+    /* ============================================
+       UPLOAD FOTO BARU
+    ============================================ */
+
+    if (photoFile) {
+      if (photoFile.size > 5 * 1024 * 1024) {
+        throw new Error("Foto terlalu besar. Maksimal 5 MB.");
+      }
+
+      button.textContent = "Mengompres foto...";
+
+      const compressed = await compressImage(photoFile);
+
+      button.textContent = "Mengupload foto...";
+
+      const uploadResult = await postData({
+        action: "upload",
+
+        token: currentUser.token,
+
+        base64: compressed.base64,
+
+        mimeType: compressed.mimeType,
+      });
+
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.message);
+      }
+
+      foto = uploadResult.url;
     }
 
-    const foto = await uploadPhoto();
+    /* ============================================
+       ADD / UPDATE
+    ============================================ */
+
+    const action = id ? "update" : "add";
+
+    button.textContent = "Menyimpan...";
 
     const data = {
-      action: editId ? "update" : "add",
+      action: action,
 
       token: currentUser.token,
 
-      id: editId || "",
+      id: id,
 
       foto: foto,
 
-      nama: getValue("nama"),
+      nama: nama,
 
-      deskripsi: getValue("deskripsi"),
+      deskripsi: deskripsi,
 
-      hargaBeli: Number(getValue("hargaBeli") || 0),
+      hargaBeli: hargaBeli,
 
-      hargaJual: Number(getValue("hargaJual") || 0),
-
-      stok: Number(getValue("stok") || 0),
+      hargaJual: hargaJual,
     };
 
     const result = await postData(data);
@@ -1112,47 +821,33 @@ async function saveProduct(event) {
       throw new Error(result.message || "Gagal menyimpan.");
     }
 
-    closeProduct();
+    alert(result.message || "Berhasil disimpan.");
+
+    closeProductModal();
 
     await loadProducts();
-
-    alert(
-      editId ? "Produk berhasil diperbarui." : "Produk berhasil ditambahkan.",
-    );
   } catch (error) {
-    if (message) {
-      message.textContent = error.message;
-    }
-
-    alert(error.message);
+    alert(error.message || "Terjadi kesalahan.");
   } finally {
-    if (button) {
-      button.disabled = false;
+    button.disabled = false;
 
-      button.textContent = "Simpan Produk";
-    }
+    button.textContent = "Simpan Produk";
   }
 }
 
-// ======================================================
-// MARK PRODUCT SOLD
-// ======================================================
+/* ==================================================
+   MARK SOLD
+================================================== */
 
 async function markProductSold(id) {
-  if (!isAdmin()) {
-    return;
-  }
-
-  const product = products.find(function (item) {
-    return String(item.id) === String(id);
-  });
+  const product = products.find((p) => String(p.id) === String(id));
 
   if (!product) {
     return;
   }
 
   const confirmSold = confirm(
-    'Tandai produk "' + product.nama + '" sebagai SOLD?',
+    "Ubah produk '" + product.nama + "' menjadi SOLD?",
   );
 
   if (!confirmSold) {
@@ -1169,35 +864,31 @@ async function markProductSold(id) {
     });
 
     if (!result.success) {
-      throw new Error(result.message || "Gagal mengubah status.");
+      throw new Error(result.message);
     }
 
-    await loadProducts();
+    alert("Produk berhasil menjadi SOLD.");
 
-    alert("Produk berhasil ditandai SOLD.");
+    await loadProducts();
   } catch (error) {
-    alert(error.message);
+    alert(error.message || "Gagal mengubah status.");
   }
 }
 
-// ======================================================
-// DELETE PRODUCT
-// ======================================================
+/* ==================================================
+   DELETE
+================================================== */
 
 async function deleteProduct(id) {
-  if (!isAdmin()) {
+  const product = products.find((p) => String(p.id) === String(id));
+
+  if (!product) {
     return;
   }
 
-  const product = products.find(function (item) {
-    return String(item.id) === String(id);
-  });
+  const confirmed = confirm("Hapus produk '" + product.nama + "'?");
 
-  const confirmDelete = confirm(
-    'Hapus produk "' + (product ? product.nama : "") + '"?',
-  );
-
-  if (!confirmDelete) {
+  if (!confirmed) {
     return;
   }
 
@@ -1211,90 +902,129 @@ async function deleteProduct(id) {
     });
 
     if (!result.success) {
-      throw new Error(result.message || "Gagal menghapus.");
+      throw new Error(result.message);
     }
 
-    await loadProducts();
-
     alert("Produk berhasil dihapus.");
+
+    await loadProducts();
   } catch (error) {
-    alert(error.message);
+    alert(error.message || "Gagal menghapus produk.");
   }
 }
 
-// ======================================================
-// WHATSAPP
-// ======================================================
+/* ==================================================
+   PHOTO PREVIEW
+================================================== */
 
-function beliWhatsApp(id) {
-  const product = products.find(function (item) {
-    return String(item.id) === String(id);
-  });
+function previewPhoto(event) {
+  const file = event.target.files[0];
 
-  if (!product) {
+  if (!file) {
     return;
   }
 
-  const message =
-    "Halo, saya ingin membeli produk:%0A%0A" +
-    "Nama: " +
-    encodeURIComponent(product.nama) +
-    "%0A" +
-    "Harga: " +
-    encodeURIComponent(formatRupiah(product.hargaJual));
+  if (file.size > 5 * 1024 * 1024) {
+    alert("Foto terlalu besar. Maksimal 5 MB.");
 
-  const url = "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + message;
+    event.target.value = "";
 
-  window.open(url, "_blank");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function (e) {
+    document.getElementById("photoPreview").innerHTML = `
+
+          <img
+            src="${e.target.result}"
+            alt="Preview"
+          >
+
+        `;
+  };
+
+  reader.readAsDataURL(file);
 }
 
-// ======================================================
-// IMAGE VIEWER
-// ======================================================
+/* ==================================================
+   COMPRESS IMAGE
+================================================== */
+
+function compressImage(file) {
+  return new Promise(function (resolve, reject) {
+    const reader = new FileReader();
+
+    reader.onload = function (event) {
+      const img = new Image();
+
+      img.onload = function () {
+        const maxWidth = 1200;
+
+        let width = img.width;
+
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+
+          width = maxWidth;
+        }
+
+        const canvas = document.createElement("canvas");
+
+        canvas.width = width;
+
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
+
+        resolve({
+          base64: dataUrl,
+
+          mimeType: "image/jpeg",
+        });
+      };
+
+      img.onerror = reject;
+
+      img.src = event.target.result;
+    };
+
+    reader.onerror = reject;
+
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ==================================================
+   IMAGE VIEWER
+================================================== */
 
 function openImageViewer(url) {
   if (!url) {
     return;
   }
 
-  const viewer = document.getElementById("imageViewer");
+  document.getElementById("largeImage").src = url;
 
-  const image = document.getElementById("largeImage");
-
-  if (!viewer || !image) {
-    return;
-  }
-
-  image.src = url;
-
-  viewer.style.display = "flex";
+  document.getElementById("imageViewer").classList.remove("hidden");
 }
 
 function closeImageViewer() {
-  const viewer = document.getElementById("imageViewer");
+  document.getElementById("imageViewer").classList.add("hidden");
 
-  if (viewer) {
-    viewer.style.display = "none";
-  }
+  document.getElementById("largeImage").src = "";
 }
 
-// ======================================================
-// CALCULATE PROFIT
-// ======================================================
-
-function calculateProfit() {
-  const hargaBeli = Number(getValue("hargaBeli") || 0);
-
-  const hargaJual = Number(getValue("hargaJual") || 0);
-
-  const profit = hargaJual - hargaBeli;
-
-  setText("profitPreview", formatRupiah(profit));
-}
-
-// ======================================================
-// POST DATA
-// ======================================================
+/* ==================================================
+   POST DATA
+================================================== */
 
 async function postData(data) {
   const response = await fetch(API_URL, {
@@ -1307,31 +1037,33 @@ async function postData(data) {
     body: JSON.stringify(data),
   });
 
+  if (!response.ok) {
+    throw new Error("HTTP " + response.status);
+  }
+
   return await response.json();
 }
 
-// ======================================================
-// FORMAT RUPIAH
-// ======================================================
+/* ==================================================
+   RUPIAH
+================================================== */
 
 function formatRupiah(value) {
-  const number = Number(value || 0);
+  const number = Number(value) || 0;
 
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
-
     currency: "IDR",
-
     maximumFractionDigits: 0,
   }).format(number);
 }
 
-// ======================================================
-// ESCAPE HTML
-// ======================================================
+/* ==================================================
+   ESCAPE HTML
+================================================== */
 
 function escapeHtml(value) {
-  return String(value || "")
+  return String(value ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -1339,68 +1071,26 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-// ======================================================
-// ESCAPE ATTRIBUTE
-// ======================================================
+/* ==================================================
+   ESCAPE ATTRIBUTE
+================================================== */
 
 function escapeAttribute(value) {
   return escapeHtml(value);
 }
 
-// ======================================================
-// SET TEXT
-// ======================================================
+/* ==================================================
+   ERROR
+================================================== */
 
-function setText(id, value) {
-  const element = document.getElementById(id);
+function showError(message) {
+  const errorBox = document.getElementById("errorMessage");
 
-  if (element) {
-    element.textContent = value;
+  if (!errorBox) {
+    return;
   }
-}
 
-// ======================================================
-// GET VALUE
-// ======================================================
+  errorBox.textContent = message;
 
-function getValue(id) {
-  const element = document.getElementById(id);
-
-  return element ? element.value : "";
-}
-
-// ======================================================
-// SET VALUE
-// ======================================================
-
-function setValue(id, value) {
-  const element = document.getElementById(id);
-
-  if (element) {
-    element.value = value ?? "";
-  }
-}
-
-// ======================================================
-// SHOW MODAL
-// ======================================================
-
-function showModal(id) {
-  const modal = document.getElementById(id);
-
-  if (modal) {
-    modal.style.display = "flex";
-  }
-}
-
-// ======================================================
-// HIDE MODAL
-// ======================================================
-
-function hideModal(id) {
-  const modal = document.getElementById(id);
-
-  if (modal) {
-    modal.style.display = "none";
-  }
+  errorBox.classList.remove("hidden");
 }

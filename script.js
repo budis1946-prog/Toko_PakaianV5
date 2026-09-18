@@ -29,6 +29,7 @@ let currentPhotoUrl = "";
 
 document.addEventListener("DOMContentLoaded", function () {
   checkSession();
+  setupFilterListeners();
 });
 
 /* ==================================================
@@ -147,6 +148,44 @@ async function loadProducts() {
 }
 
 /* ==================================================
+   FILTER LISTENERS
+================================================== */
+
+function setupFilterListeners() {
+  const adminStatusFilter = document.getElementById("adminStatusFilter");
+
+  if (adminStatusFilter) {
+    adminStatusFilter.addEventListener("change", function () {
+      renderProducts();
+    });
+  }
+
+  const adminSearchInput = document.getElementById("adminSearchInput");
+
+  if (adminSearchInput) {
+    adminSearchInput.addEventListener("input", function () {
+      renderProducts();
+    });
+  }
+
+  const statusFilter = document.getElementById("statusFilter");
+
+  if (statusFilter) {
+    statusFilter.addEventListener("change", function () {
+      renderProducts();
+    });
+  }
+
+  const searchInput = document.getElementById("searchInput");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", function () {
+      renderProducts();
+    });
+  }
+}
+
+/* ==================================================
    RENDER PRODUCTS
 ================================================== */
 
@@ -199,70 +238,48 @@ function renderProducts() {
     return;
   }
 
- /* ================================================
+  /* ================================================
    ADMIN
 ================================================ */
 
-const searchInput =
-  document.getElementById("adminSearchInput");
+  const searchInput = document.getElementById("adminSearchInput");
 
-const keyword =
-  searchInput
-    ? searchInput.value.trim().toLowerCase()
-    : "";
+  const keyword = searchInput ? searchInput.value.trim().toLowerCase() : "";
 
+  // Filter berdasarkan pencarian
+  if (keyword) {
+    list = list.filter(function (p) {
+      return (
+        String(p.nama || "")
+          .toLowerCase()
+          .includes(keyword) ||
+        String(p.deskripsi || "")
+          .toLowerCase()
+          .includes(keyword)
+      );
+    });
+  }
 
-// Filter berdasarkan pencarian
-if (keyword) {
+  // Filter berdasarkan status
+  const filter = document.getElementById("adminStatusFilter");
 
-  list = list.filter(function (p) {
+  if (filter && filter.value !== "ALL") {
+    list = list.filter(function (p) {
+      return (
+        String(p.status || "")
+          .trim()
+          .toUpperCase() === filter.value
+      );
+    });
+  }
 
-    return (
-      String(p.nama || "")
-        .toLowerCase()
-        .includes(keyword)
+  /*
+   * SUMMARY MENGIKUTI FILTER
+   */
+  updateDashboard(list);
 
-      ||
-
-      String(p.deskripsi || "")
-        .toLowerCase()
-        .includes(keyword)
-    );
-
-  });
-}
-
-
-// Filter berdasarkan status
-const filter =
-  document.getElementById("adminStatusFilter");
-
-if (
-  filter &&
-  filter.value !== "ALL"
-) {
-
-  list = list.filter(function (p) {
-
-    return (
-      String(p.status || "")
-        .trim()
-        .toUpperCase()
-        === filter.value
-    );
-
-  });
-}
-
-
-/*
- * SUMMARY MENGIKUTI FILTER
- */
-updateDashboard(list);
-
-
-// Tampilkan produk hasil filter
-renderAdminProducts(list);
+  // Tampilkan produk hasil filter
+  renderAdminProducts(list);
 }
 
 /* ==================================================
@@ -540,129 +557,72 @@ function adminProductCard(product) {
 ================================================== */
 
 function updateDashboard(list) {
-
   // Total produk berdasarkan filter
   const total = list.length;
 
-
   // READY berdasarkan filter
-  const ready =
-    list.filter(function (p) {
-
-      return (
-        String(p.status || "")
-          .trim()
-          .toUpperCase()
-          === "READY"
-      );
-
-    }).length;
-
+  const ready = list.filter(function (p) {
+    return (
+      String(p.status || "")
+        .trim()
+        .toUpperCase() === "READY"
+    );
+  }).length;
 
   // SOLD berdasarkan filter
-  const sold =
-    list.filter(function (p) {
+  const sold = list.filter(function (p) {
+    return (
+      String(p.status || "")
+        .trim()
+        .toUpperCase() === "SOLD"
+    );
+  }).length;
 
+  // Total Modal
+  const totalModal = list.reduce(function (total, p) {
+    return total + (Number(p.hargaBeli) || 0);
+  }, 0);
+
+  // Total Penjualan
+  const totalPenjualan = list
+    .filter(function (p) {
       return (
         String(p.status || "")
           .trim()
-          .toUpperCase()
-          === "SOLD"
+          .toUpperCase() === "SOLD"
       );
-
-    }).length;
-
-
-  // Total Modal
-  const totalModal =
-    list.reduce(function (total, p) {
-
-      return (
-        total +
-        (Number(p.hargaBeli) || 0)
-      );
-
+    })
+    .reduce(function (total, p) {
+      return total + (Number(p.hargaJual) || 0);
     }, 0);
 
-
-  // Total Penjualan
-  const totalPenjualan =
-    list
-      .filter(function (p) {
-
-        return (
-          String(p.status || "")
-            .trim()
-            .toUpperCase()
-            === "SOLD"
-        );
-
-      })
-      .reduce(function (total, p) {
-
-        return (
-          total +
-          (Number(p.hargaJual) || 0)
-        );
-
-      }, 0);
-
-
   // Total Profit
-  const totalProfit =
-    list
-      .filter(function (p) {
-
-        return (
-          String(p.status || "")
-            .trim()
-            .toUpperCase()
-            === "SOLD"
-        );
-
-      })
-      .reduce(function (total, p) {
-
-        return (
-          total +
-          (Number(p.profit) || 0)
-        );
-
-      }, 0);
-
+  const totalProfit = list
+    .filter(function (p) {
+      return (
+        String(p.status || "")
+          .trim()
+          .toUpperCase() === "SOLD"
+      );
+    })
+    .reduce(function (total, p) {
+      return total + (Number(p.profit) || 0);
+    }, 0);
 
   // Tampilkan ke dashboard
 
-  document.getElementById(
-    "totalProduk"
-  ).textContent = total;
+  document.getElementById("totalProduk").textContent = total;
 
+  document.getElementById("totalReady").textContent = ready;
 
-  document.getElementById(
-    "totalReady"
-  ).textContent = ready;
+  document.getElementById("totalSold").textContent = sold;
 
+  document.getElementById("totalModal").textContent = formatRupiah(totalModal);
 
-  document.getElementById(
-    "totalSold"
-  ).textContent = sold;
-
-
-  document.getElementById(
-    "totalModal"
-  ).textContent =
-    formatRupiah(totalModal);
-
-
-  document.getElementById(
-    "totalPenjualan"
-  ).textContent =
+  document.getElementById("totalPenjualan").textContent =
     formatRupiah(totalPenjualan);
 
-
-  document.getElementById(
-    "totalProfit"
-  ).textContent =
+  document.getElementById("totalProfit").textContent =
     formatRupiah(totalProfit);
 }
 

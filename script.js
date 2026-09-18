@@ -199,38 +199,70 @@ function renderProducts() {
     return;
   }
 
-  /* ================================================
-     ADMIN
-  ================================================ */
+ /* ================================================
+   ADMIN
+================================================ */
 
-  const searchInput = document.getElementById("adminSearchInput");
+const searchInput =
+  document.getElementById("adminSearchInput");
 
-  const keyword = searchInput ? searchInput.value.trim().toLowerCase() : "";
+const keyword =
+  searchInput
+    ? searchInput.value.trim().toLowerCase()
+    : "";
 
-  if (keyword) {
-    list = list.filter(function (p) {
-      return (
-        String(p.nama || "")
-          .toLowerCase()
-          .includes(keyword) ||
-        String(p.deskripsi || "")
-          .toLowerCase()
-          .includes(keyword)
-      );
-    });
-  }
 
-  const filter = document.getElementById("adminStatusFilter");
+// Filter berdasarkan pencarian
+if (keyword) {
 
-  if (filter && filter.value !== "ALL") {
-    list = list.filter(function (p) {
-      return String(p.status || "").toUpperCase() === filter.value;
-    });
-  }
+  list = list.filter(function (p) {
 
-  updateDashboard(products);
+    return (
+      String(p.nama || "")
+        .toLowerCase()
+        .includes(keyword)
 
-  renderAdminProducts(list);
+      ||
+
+      String(p.deskripsi || "")
+        .toLowerCase()
+        .includes(keyword)
+    );
+
+  });
+}
+
+
+// Filter berdasarkan status
+const filter =
+  document.getElementById("adminStatusFilter");
+
+if (
+  filter &&
+  filter.value !== "ALL"
+) {
+
+  list = list.filter(function (p) {
+
+    return (
+      String(p.status || "")
+        .trim()
+        .toUpperCase()
+        === filter.value
+    );
+
+  });
+}
+
+
+/*
+ * SUMMARY MENGIKUTI FILTER
+ */
+updateDashboard(list);
+
+
+// Tampilkan produk hasil filter
+renderAdminProducts(list);
 }
 
 /* ==================================================
@@ -508,53 +540,129 @@ function adminProductCard(product) {
 ================================================== */
 
 function updateDashboard(list) {
+
+  // Total produk berdasarkan filter
   const total = list.length;
 
-  const ready = list.filter(
-    (p) => String(p.status || "").toUpperCase() === "READY",
-  ).length;
 
-  const sold = list.filter(
-    (p) => String(p.status || "").toUpperCase() === "SOLD",
-  ).length;
+  // READY berdasarkan filter
+  const ready =
+    list.filter(function (p) {
 
-  /*
-   * Karena kolom stok sudah dihilangkan,
-   * Total Modal dihitung dari seluruh produk
-   * berdasarkan Harga Beli.
-   *
-   * Jika setiap baris mewakili satu barang,
-   * maka total modal = jumlah Harga Beli.
-   */
+      return (
+        String(p.status || "")
+          .trim()
+          .toUpperCase()
+          === "READY"
+      );
 
-  const totalModal = list.reduce(function (total, p) {
-    return total + (Number(p.hargaBeli) || 0);
-  }, 0);
+    }).length;
 
-  const totalPenjualan = list
-    .filter((p) => String(p.status || "").toUpperCase() === "SOLD")
-    .reduce(function (total, p) {
-      return total + (Number(p.hargaJual) || 0);
+
+  // SOLD berdasarkan filter
+  const sold =
+    list.filter(function (p) {
+
+      return (
+        String(p.status || "")
+          .trim()
+          .toUpperCase()
+          === "SOLD"
+      );
+
+    }).length;
+
+
+  // Total Modal
+  const totalModal =
+    list.reduce(function (total, p) {
+
+      return (
+        total +
+        (Number(p.hargaBeli) || 0)
+      );
+
     }, 0);
 
-  const totalProfit = list
-    .filter((p) => String(p.status || "").toUpperCase() === "SOLD")
-    .reduce(function (total, p) {
-      return total + (Number(p.profit) || 0);
-    }, 0);
 
-  document.getElementById("totalProduk").textContent = total;
+  // Total Penjualan
+  const totalPenjualan =
+    list
+      .filter(function (p) {
 
-  document.getElementById("totalReady").textContent = ready;
+        return (
+          String(p.status || "")
+            .trim()
+            .toUpperCase()
+            === "SOLD"
+        );
 
-  document.getElementById("totalSold").textContent = sold;
+      })
+      .reduce(function (total, p) {
 
-  document.getElementById("totalModal").textContent = formatRupiah(totalModal);
+        return (
+          total +
+          (Number(p.hargaJual) || 0)
+        );
 
-  document.getElementById("totalPenjualan").textContent =
+      }, 0);
+
+
+  // Total Profit
+  const totalProfit =
+    list
+      .filter(function (p) {
+
+        return (
+          String(p.status || "")
+            .trim()
+            .toUpperCase()
+            === "SOLD"
+        );
+
+      })
+      .reduce(function (total, p) {
+
+        return (
+          total +
+          (Number(p.profit) || 0)
+        );
+
+      }, 0);
+
+
+  // Tampilkan ke dashboard
+
+  document.getElementById(
+    "totalProduk"
+  ).textContent = total;
+
+
+  document.getElementById(
+    "totalReady"
+  ).textContent = ready;
+
+
+  document.getElementById(
+    "totalSold"
+  ).textContent = sold;
+
+
+  document.getElementById(
+    "totalModal"
+  ).textContent =
+    formatRupiah(totalModal);
+
+
+  document.getElementById(
+    "totalPenjualan"
+  ).textContent =
     formatRupiah(totalPenjualan);
 
-  document.getElementById("totalProfit").textContent =
+
+  document.getElementById(
+    "totalProfit"
+  ).textContent =
     formatRupiah(totalProfit);
 }
 
